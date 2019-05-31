@@ -1,9 +1,6 @@
-from os import path as osp
-import pickle
 import tempfile
 import unittest
 
-from nose2 import tools
 
 from malib.logger import Snapshotter
 

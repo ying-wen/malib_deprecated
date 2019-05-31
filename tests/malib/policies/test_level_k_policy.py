@@ -1,13 +1,9 @@
-import pickle
-from collections import OrderedDict
-
 import numpy as np
 import tensorflow as tf
 
 import gym
 
 from malib.policies import GaussianMLPPolicy, UniformPolicy, LevelKPolicy
-from malib.core import Serializable
 
 
 class LevelKPolicyTest(tf.test.TestCase):
@@ -35,6 +31,7 @@ class LevelKPolicyTest(tf.test.TestCase):
         self.level_k_policy = LevelKPolicy(main_policy=self.main_policy,
                                            secondary_policy=self.second_policy,
                                            prior_policy=self.prior_policy,
+                                           secondary_prior_policy=self.prior_policy,
                                            k=self.k
                                            )
 

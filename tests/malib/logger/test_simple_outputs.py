@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from garage.logger import StdOutput, TabularInput, TextOutput
+from malib.logger import StdOutput, TabularInput, TextOutput
 
 FAKE_TIMESTAMP = '2000-01-01 00:00:00.000000'
 FAKE_TIMESTAMP_SHORT = '2000-01-01 00:00:00'
@@ -16,7 +16,7 @@ def fake_timestamp(mock_datetime):
     mock_datetime.datetime.return_value.strftime.return_value = FAKE_TIMESTAMP
 
 
-@mock.patch('garage.logger.simple_outputs.datetime')
+@mock.patch('malib.logger.simple_outputs.datetime')
 class TestTextOutput(unittest.TestCase):
     def setUp(self):
         self.log_file = tempfile.NamedTemporaryFile()
@@ -84,7 +84,7 @@ class TestTextOutput(unittest.TestCase):
             self.text_output.record(dict())
 
 
-@mock.patch('garage.logger.simple_outputs.datetime')
+@mock.patch('malib.logger.simple_outputs.datetime')
 class TestStdOutput(unittest.TestCase):
     def setUp(self):
         self.tabular = TabularInput()
