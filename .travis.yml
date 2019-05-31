@@ -8,3 +8,6 @@ install:
 # command to run tests
 script:
   - pytest
+
+after_success:
+  - "BRANCHES_TO_MERGE_REGEX='dev' BRANCH_TO_MERGE_INTO=master GITHUB_REPO=ying-wen/malib ./travis-automerge"
