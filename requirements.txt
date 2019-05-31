@@ -1,0 +1,9 @@
+numpy
+tensorflow==2.0.0-alpha0
+tfp-nightly
+gym
+matplotlib
+tensorboardX
+tabulate
+protobuf
+joblib
