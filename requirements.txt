@@ -1,5 +1,5 @@
 numpy
-tensorflow==2.0.0-alpha0
+tensorflow==2.0.0-beta0
 tfp-nightly
 gym
 matplotlib
