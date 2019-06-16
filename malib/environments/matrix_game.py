@@ -1,8 +1,8 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
+from malib.environments.base_game import BaseGame
 
-
-class MatrixGame:
+class MatrixGame(BaseGame):
     def __init__(self, game, agent_num, action_num, payoff=None, repeated=False, max_step=25, memory=0, discrete_action=True, tuple_obs=True):
         self.game = game
         self.agent_num = agent_num

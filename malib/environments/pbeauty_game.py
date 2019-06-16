@@ -1,8 +1,8 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
+from malib.environments.base_game import BaseGame
 
-
-class PBeautyGame:
+class PBeautyGame(BaseGame):
     def __init__(self, agent_num, game_name='pbeauty', p=0.67, reward_type='abs', action_range=(-1.,1.)):
         self.agent_num = agent_num
         self.p = p
@@ -51,7 +51,7 @@ class PBeautyGame:
         if mode == 'human':
             print(self.__str__())
 
-    def get_joint_reward(self):
+    def get_rewards(self):
         return self.rewards
 
     def terminate(self):

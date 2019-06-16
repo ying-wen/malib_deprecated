@@ -1,4 +1,5 @@
 # Created by yingwen at 2019-03-16
+
 from malib.samplers.sampler import MASampler
 from malib.environments import DifferentialGame
 from malib.policies import DeterministicMLPPolicy
@@ -22,9 +23,9 @@ from malib.logger import TensorBoardOutput
 from malib.logger import TextOutput
 
 
-tf.random.set_seed(0)
-np.random.seed(0)
-random.seed(0)
+tf.random.set_seed(48)
+np.random.seed(48)
+random.seed(48)
 
 checkpoint_directory = "/tmp/training_checkpoints"
 checkpoint_prefix = os.path.join(checkpoint_directory, "ckpt")

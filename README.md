@@ -58,6 +58,12 @@ cd examples
 python3 run_agents.py
 ```
 
+## Testing Code
+
+```shell
+python -m pytest tests
+```
+
 
 ## Reference Projects
 The project implementation has referred much and adopted some codes from the following projects:

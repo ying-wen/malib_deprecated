@@ -1,8 +1,8 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
+from malib.environments.base_game import BaseGame
 
-
-class DifferentialGame:
+class DifferentialGame(BaseGame):
     def __init__(self, game_name, agent_num, action_range=(-10, 10)):
         self.game = game_name
         self.agent_num = agent_num
@@ -91,7 +91,7 @@ class DifferentialGame:
         if mode == 'human':
             print(self.__str__())
 
-    def get_joint_reward(self):
+    def get_rewards(self):
         return self.rewards
 
     def terminate(self):

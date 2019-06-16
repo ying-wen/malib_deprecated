@@ -1,8 +1,8 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
+from malib.environments.base_game import BaseGame
 
-
-class StochasticMatrixGame():
+class StochasticMatrixGame(BaseGame):
     def __init__(self, game, agent_num, action_num, state_num, payoff=None, transition=None):
         self.game = game
         self.agent_num = agent_num
@@ -46,8 +46,6 @@ class StochasticMatrixGame():
             self.g1 = [[0.,3.], [2.,-1.]]
             self.g2 = [[0., 1.], [4., 3.]]
             self.g = [['g1', 4.], [5., 'g2']]
-
-
 
         self.rewards = np.zeros((self.agent_num,))
         self.state = 0
@@ -127,7 +125,7 @@ class StochasticMatrixGame():
         if mode == 'human':
             print(self.__str__())
 
-    def get_joint_reward(self):
+    def get_rewards(self):
         return self.rewards
 
     def __str__(self):
