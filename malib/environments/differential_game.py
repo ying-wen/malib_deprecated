@@ -67,7 +67,12 @@ class DifferentialGame(BaseGame):
     @staticmethod
     def get_game_list():
         return {
-            'zero_sum': {'agent_num': 2, 'action_num': 2}
+            'zero_sum': {'agent_num': 2, 'action_num': 2},
+            'trigonometric': {'agent_num': 2},
+            'mataching_pennies': {'agent_num': 2},
+            'rotational': {'agent_num': 2},
+            'wolf': {'agent_num': 2},
+            'ma_softq': {'agent_num': 2},
         }
 
     def step(self, actions):

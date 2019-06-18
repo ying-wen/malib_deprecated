@@ -97,6 +97,7 @@ class StochasticMatrixGame(BaseGame):
     def get_game_list():
         return {
             'PollutionTax': {'agent_num': 2, 'action_num': 3, 'state_num': 2},
+            'three_matrix_games': {'agent_num': 2, 'action_num': 2, 'state_num': 3},
         }
 
     def step(self, actions):

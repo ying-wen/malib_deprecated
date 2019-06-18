@@ -177,14 +177,20 @@ class MatrixGame(BaseGame):
     @staticmethod
     def get_game_list():
         return {
-            'rock_paper_scissors': {'agent_num': 2, 'action_num': 3},
-            'wolf_05_05': {'agent_num': 2, 'action_num': 2},
-            'prison': {'agent_num': 2, 'action_num': 2},
-            'matching_pennies_3': {'agent_num': 3, 'action_num': 2},
-            'matching_pennies': {'agent_num': 2, 'action_num': 2},
-            'zero_sum_nash_0_1': {'agent_num': 2, 'action_num': 2},
-            'coordination_same_action_with_preference': {'agent_num': 2, 'action_num': 2},
             'coordination_0_0': {'agent_num': 2, 'action_num': 2},
+            'coordination_same_action_with_preference': {'agent_num': 2, 'action_num': 2},
+            'zero_sum_nash_0_1': {'agent_num': 2, 'action_num': 2},
+            'matching_pennies': {'agent_num': 2, 'action_num': 2},
+            'matching_pennies_3': {'agent_num': 3, 'action_num': 2},
+            'prison_lola': {'agent_num': 2, 'action_num': 2},
+            'prison': {'agent_num': 2, 'action_num': 2},
+            'stag_hunt': {'agent_num': 2, 'action_num': 2},
+            'chicken': {'agent_num': 2, 'action_num': 2},
+            'harmony': {'agent_num': 2, 'action_num': 2},
+            'wolf_05_05': {'agent_num': 2, 'action_num': 2},
+            'climbing': {'agent_num': 2, 'action_num': 3},
+            'penalty': {'agent_num': 2, 'action_num': 3},
+            'rock_paper_scissors': {'agent_num': 2, 'action_num': 3},
         }
 
 

@@ -64,6 +64,12 @@ python3 run_agents.py
 python -m pytest tests
 ```
 
+Testing With Keyword
+
+```shell
+python -m pytest tests -k "environments"
+```
+
 
 ## Reference Projects
 The project implementation has referred much and adopted some codes from the following projects:
@@ -72,5 +78,3 @@ The project implementation has referred much and adopted some codes from the fol
 ,[softlearning](https://github.com/rail-berkeley/softlearning)
 ,[garage](https://github.com/rlworkgroup/garage)
 ,[markov-game](https://github.com/aijunbai/markov-game). Thanks a lot!
-  
-    

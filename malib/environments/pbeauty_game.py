@@ -57,6 +57,12 @@ class PBeautyGame(BaseGame):
     def terminate(self):
         pass
 
+    @staticmethod
+    def get_game_list():
+        return {
+            'pbeauty': {},
+        }
+
     def __str__(self):
         content = 'Game Name {}, Number of Agent {}, Action Range {}\n'.format(self.game, self.agent_num, self.action_range)
         return content
