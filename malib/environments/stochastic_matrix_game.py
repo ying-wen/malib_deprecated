@@ -1,6 +1,8 @@
 import numpy as np
+
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
+from malib.error import EnvironmentNotFound
 
 class StochasticMatrixGame(BaseGame):
     def __init__(self, game, agent_num, action_num, state_num, payoff=None, transition=None):
@@ -23,7 +25,7 @@ class StochasticMatrixGame(BaseGame):
         if transition is None:
             self.transition = np.zeros(tuple([state_num] + [action_num] * agent_num + [state_num]))
 
-        if game == 'PollutionTax':
+        if self.game == 'PollutionTax':
             assert self.agent_num == 2
             assert self.action_num == 2
             assert self.state_num == 2
@@ -39,13 +41,15 @@ class StochasticMatrixGame(BaseGame):
                                  [[0., 1.], [0., 1.]]]
             self.transition[1] = [[[1., 0.], [0., 1.]],
                                   [[0., 1.], [0., 1.]]]
-        elif game=='three_matrix_games':
+        elif self.game=='three_matrix_games':
             self.agent_num == 2
             self.action_num == 2
             self.state_num == 3
             self.g1 = [[0.,3.], [2.,-1.]]
             self.g2 = [[0., 1.], [4., 3.]]
             self.g = [['g1', 4.], [5., 'g2']]
+        else:
+            raise EnvironmentNotFound(f"The game {self.game} doesn't exists")
 
         self.rewards = np.zeros((self.agent_num,))
         self.state = 0

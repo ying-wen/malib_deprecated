@@ -1,6 +1,7 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
+from malib.error import EnvironmentNotFound
 
 class MatrixGame(BaseGame):
     def __init__(self, game, agent_num, action_num, payoff=None, repeated=False, max_step=25, memory=0, discrete_action=True, tuple_obs=True):
@@ -44,103 +45,93 @@ class MatrixGame(BaseGame):
         if payoff is None:
             self.payoff = np.zeros(tuple([agent_num] + [action_num] * agent_num))
 
-        if game == 'coordination_0_0':
+        if self.game == 'coordination_0_0':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[1,-1],
                            [-1,-1]]
             self.payoff[1]=[[1,-1],
                            [-1,-1]]
-
-        if game == 'coordination_same_action_with_preference':
+        elif self.game == 'coordination_same_action_with_preference':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[2, 0],
                            [0, 1]]
             self.payoff[1]=[[1, 0],
                            [0, 2]]
-
-#     '''payoff tabular of zero-sum game scenario. nash equilibrium: (Agenat1's action=0,Agent2's action=1)'''
-        elif game == 'zero_sum_nash_0_1':
+        elif self.game == 'zero_sum_nash_0_1':
+            # payoff tabular of zero-sum game scenario. nash equilibrium: (Agenat1's action=0,Agent2's action=1)
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[5,2],
                             [-1,6]]
             self.payoff[1]=[[-5,-2],
                             [1,-6]]
-
-#     '''payoff tabular of zero-sumgame scenario. matching pennies'''
-        elif game == 'matching_pennies':
+        elif self.game == 'matching_pennies':
+            # payoff tabular of zero-sumgame scenario. matching pennies
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[1,-1],
                            [-1,1]]
             self.payoff[1]=[[-1,1],
                            [1,-1]]
-
-        # elif game == 'matching_pennies_3':
-        #     assert self.agent_num == 3
-        #     assert self.action_num == 2
-        #     self.payoff[0]=[
-        #                     [ [1,-1],
-        #                       [-1,1] ],
-        #                     [ [1, -1],
-        #                      [-1, 1]]
-        #                     ]
-        #     self.payoff[1]=[
-        #                     [ [1,-1],
-        #                       [1,-1] ],
-        #                     [[-1, 1],
-        #                      [-1, 1]]
-        #                     ]
-        #     self.payoff[2] = [
-        #                     [[-1, -1],
-        #                      [1, 1]],
-        #                     [[1, 1],
-        #                      [-1, -1]]
-        #                     ]
-
-        elif game =='prison_lola':
+        elif self.game == 'matching_pennies_3':
+            assert self.agent_num == 3
+            assert self.action_num == 2
+            self.payoff[0]=[
+                            [ [1,-1],
+                              [-1,1] ],
+                            [ [1, -1],
+                             [-1, 1]]
+                            ]
+            self.payoff[1]=[
+                            [ [1,-1],
+                              [1,-1] ],
+                            [[-1, 1],
+                             [-1, 1]]
+                            ]
+            self.payoff[2] = [
+                            [[-1, -1],
+                             [1, 1]],
+                            [[1, 1],
+                             [-1, -1]]
+                            ]
+        elif self.game =='prison_lola':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[-1,-3],
                            [0,-2]]
             self.payoff[1]=[[-1,0],
                            [-3,-2]]
-
-        elif game =='prison':
+        elif self.game =='prison':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[3, 1],
                            [4, 2]]
             self.payoff[1]=[[3, 4],
                            [1, 2]]
-
-        elif game =='stag_hunt':
+        elif self.game =='stag_hunt':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[4, 1],
                            [3, 2]]
             self.payoff[1]=[[4, 3],
                            [1, 2]]
-
-        elif game =='chicken': # snowdrift
+        elif self.game =='chicken': # snowdrift
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0]=[[3, 2],
                            [4, 1]]
             self.payoff[1]=[[3, 4],
                            [2, 1]]
-
-        elif game =='harmony':
+        elif self.game =='harmony':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0] = [[4, 3],
                              [2, 1]]
             self.payoff[1] = [[4, 2],
                              [3, 1]]
-
-        elif game == 'wolf_05_05':
+        elif self.game == 'wolf_05_05':
             assert self.agent_num == 2
             assert self.action_num == 2
             self.payoff[0] = [[0, 3],
@@ -149,8 +140,7 @@ class MatrixGame(BaseGame):
                              [0, 1]]
             # \alpha, \beta = 0, 0.9, nash is 0.5 0.5
             # Q tables given, matian best response, learn a nash e.
-
-        elif game == 'climbing':
+        elif self.game == 'climbing':
             assert self.agent_num == 2
             assert self.action_num == 3
             self.payoff[0] = [[11, -30, 0],
@@ -159,7 +149,7 @@ class MatrixGame(BaseGame):
             self.payoff[1] = [[11, -30, 0],
                               [-30, 7, 6],
                               [0, 0, 5]]
-        elif game == 'penalty':
+        elif self.game == 'penalty':
             assert self.agent_num == 2
             assert self.action_num == 3
             self.payoff[0] = [[10, 0, 0],
@@ -168,17 +158,19 @@ class MatrixGame(BaseGame):
             self.payoff[1] = [[10, 0, 0],
                               [0, 2, 0],
                               [0, 0, 10]]
-        # elif game == 'rock_paper_scissors':
-        #     assert self.agent_num == 2
-        #     assert self.action_num == 3
-        #     self.payoff[0] = [[0, -1, 1],
-        #                       [1, 0, -1],
-        #                       [-1, 1, 0]
-        #                       ]
-        #     self.payoff[1] = [[0, 1, -1],
-        #                       [-1, 0, 1],
-        #                       [1, -1, 0]
-        #                       ]
+        elif self.game == 'rock_paper_scissors':
+            assert self.agent_num == 2
+            assert self.action_num == 3
+            self.payoff[0] = [[0, -1, 1],
+                              [1, 0, -1],
+                              [-1, 1, 0]
+                              ]
+            self.payoff[1] = [[0, 1, -1],
+                              [-1, 0, 1],
+                              [1, -1, 0]
+                              ]
+        else:
+            raise EnvironmentNotFound(f"The game {self.game} doesn't exists")
 
         self.rewards = np.zeros((self.agent_num,))
 

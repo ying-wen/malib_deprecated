@@ -1,6 +1,7 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
+from malib.error import EnvironmentNotFound
 
 class DifferentialGame(BaseGame):
     def __init__(self, game_name, agent_num, action_range=(-10, 10)):
@@ -41,7 +42,6 @@ class DifferentialGame(BaseGame):
 
             self.payoff[0] = lambda a1, a2: V(a1, a2, payoff_0)
             self.payoff[1] = lambda a1, a2: V(a1, a2, payoff_1)
-
         elif self.game == 'ma_softq':
             assert self.agent_num == 2
             h1 = 0.8
@@ -59,6 +59,9 @@ class DifferentialGame(BaseGame):
                 return max(f1, f2)
             self.payoff[0] = lambda a1, a2: max_f(a1, a2)
             self.payoff[1] = lambda a1, a2: max_f(a1, a2)
+        else:
+            raise EnvironmentNotFound(f"The game {self.game} doesn't exists")
+
         self.rewards = np.zeros((self.agent_num,))
 
     @staticmethod
