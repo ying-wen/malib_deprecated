@@ -1,12 +1,14 @@
 import numpy as np
+
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
+from malib.error import EnvironmentNotFound, RewardTypeNotFound
 
 class PBeautyGame(BaseGame):
-    def __init__(self, agent_num, game_name='pbeauty', p=0.67, reward_type='abs', action_range=(-1.,1.)):
+    def __init__(self, agent_num, game='pbeauty', p=0.67, reward_type='abs', action_range=(-1.,1.)):
         self.agent_num = agent_num
         self.p = p
-        self.game_name = game_name
+        self.game = game
         self.reward_type = reward_type
         self.action_range = action_range
         self.action_spaces = MASpace(tuple(Box(low=-1., high=1., shape=(1,)) for _ in range(self.agent_num)))
@@ -15,11 +17,20 @@ class PBeautyGame(BaseGame):
         self.t = 0
         self.rewards = np.zeros((self.agent_num,))
 
+        if not self.game in PBeautyGame.get_game_list():
+            raise EnvironmentNotFound(f"The game {self.game} doesn't exists")
+
+        if self.game == 'pbeauty':
+            if not self.reward_type in PBeautyGame.get_game_list()[self.game]["reward_type"]:
+                raise RewardTypeNotFound(f"The reward type {self.reward_type} doesn't exists")
+
+
+
     def step(self, actions):
         assert len(actions) == self.agent_num
         actions = np.array(actions).reshape((self.agent_num,))
         reward_n = np.zeros((self.agent_num,))
-        if self.game_name == 'pbeauty':
+        if self.game == 'pbeauty':
             actions = (actions + 1.) * 50.
             action_mean = np.mean(actions) * self.p
             deviation_abs = np.abs(actions - action_mean)
@@ -33,7 +44,7 @@ class PBeautyGame(BaseGame):
                 reward_n = -np.sqrt(deviation_abs)
             elif self.reward_type == 'square':
                 reward_n = -np.square(deviation_abs)
-        elif self.game_name == 'entry':
+        elif self.game == 'entry':
             actions = (actions + 1.) / 2.
             # think about it?
 
@@ -60,7 +71,8 @@ class PBeautyGame(BaseGame):
     @staticmethod
     def get_game_list():
         return {
-            'pbeauty': {},
+            'pbeauty': {"reward_type": ['abs', 'one', 'sqrt', 'square']},
+            'entry': {"reward_type": []},
         }
 
     def __str__(self):
