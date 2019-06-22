@@ -5,8 +5,19 @@ class EnvironmentNotFound(Exception):
 
 class WrongNumberOfAgent(Exception):
     """Raised when the number of agent doesn't
-    match actions given to environment"""
+    match the environment specification"""
     pass
+
+class WrongNumberOfAction(Exception):
+    """Raised when the number of action doesn't
+    match the environment specification"""
+    pass
+
+class WrongNumberOfState(Exception):
+    """Raised when the number of state doesn't
+    match the environment specification"""
+    pass
+
 
 class RewardTypeNotFound(Exception):
     """Raised when the type of the reward isn't found
