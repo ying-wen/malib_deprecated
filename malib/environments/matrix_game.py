@@ -1,7 +1,8 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
-from malib.error import EnvironmentNotFound, WrongNumberOfAgent, WrongNumberOfAction
+from malib.error import EnvironmentNotFound, WrongNumberOfAgent, WrongNumberOfAction, \
+    WrongActionInputLength
 
 class MatrixGame(BaseGame):
     def __init__(self, game_name, agent_num, action_num, payoff=None, repeated=False, max_step=25, memory=0, discrete_action=True, tuple_obs=True):
@@ -202,7 +203,9 @@ class MatrixGame(BaseGame):
         return reward_n
 
     def step(self, actions):
-        assert len(actions) == self.agent_num
+        if len(actions) != self.agent_num:
+            raise WrongActionInputLength(f"Expected number of actions is {self.agent_num}")
+
         actions = np.array(actions).reshape((self.agent_num,))
         reward_n = self.get_rewards(actions)
         self.rewards = reward_n

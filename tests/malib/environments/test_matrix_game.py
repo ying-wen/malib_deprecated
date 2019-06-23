@@ -1,7 +1,8 @@
 import pytest
 
 from malib.environments import MatrixGame
-from malib.error import EnvironmentNotFound, WrongNumberOfAgent, WrongNumberOfAction
+from malib.error import EnvironmentNotFound, WrongNumberOfAgent, \
+    WrongNumberOfAction, WrongActionInputLength
 
 expected_config = [
     ("coordination_0_0", 2, 2),
@@ -45,3 +46,11 @@ def test_wrong_num_action(game_name, real_num_agent, real_num_action):
 
     assert f"for {game_name} is {real_num_action}" in str(excinfo.value)
     assert "action" in str(excinfo.value)
+
+@pytest.mark.parametrize("game_name, real_num_agent, real_num_action", expected_config)
+def test_wrong_input_action_length(game_name, real_num_agent, real_num_action):
+    game = MatrixGame(game_name, real_num_agent, real_num_action)
+    with pytest.raises(WrongActionInputLength) as excinfo:
+        game.step([10] * (real_num_agent + 1))
+
+    assert f"Expected number of actions is {real_num_agent}" in str(excinfo.value)

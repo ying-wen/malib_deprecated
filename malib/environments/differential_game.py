@@ -1,7 +1,7 @@
 import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
-from malib.error import EnvironmentNotFound, WrongNumberOfAgent
+from malib.error import EnvironmentNotFound, WrongNumberOfAgent, WrongActionInputLength
 
 class DifferentialGame(BaseGame):
     def __init__(self, game_name, agent_num, action_range=(-10, 10)):
@@ -81,7 +81,10 @@ class DifferentialGame(BaseGame):
         }
 
     def step(self, actions):
-        assert len(actions) == self.agent_num
+
+        if len(actions) != self.agent_num:
+            raise WrongActionInputLength(f"Expected number of actions is {self.agent_num}")
+
         print('actions', actions)
         actions = np.array(actions).reshape((self.agent_num,)) * self.action_range[1]
         print('scaled', actions)

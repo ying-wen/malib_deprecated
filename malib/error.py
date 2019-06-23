@@ -23,3 +23,7 @@ class RewardTypeNotFound(Exception):
     """Raised when the type of the reward isn't found
     (For PBeautyGame)"""
     pass
+
+class WrongActionInputLength(Exception):
+    """Raised when the the length of the
+    input doesn't match the number of agents"""

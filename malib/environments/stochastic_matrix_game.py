@@ -3,7 +3,7 @@ import numpy as np
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
 from malib.environments.base_game import BaseGame
 from malib.error import EnvironmentNotFound, WrongNumberOfAgent, \
-    WrongNumberOfAction, WrongNumberOfState
+    WrongNumberOfAction, WrongNumberOfState, WrongActionInputLength
 
 class StochasticMatrixGame(BaseGame):
     def __init__(self, game_name, agent_num, action_num, state_num, payoff=None, transition=None):
@@ -115,7 +115,8 @@ class StochasticMatrixGame(BaseGame):
         }
 
     def step(self, actions):
-        assert len(actions) == self.agent_num
+        if len(actions) != self.agent_num:
+            raise WrongActionInputLength(f"Expected number of actions is {self.agent_num}")
 
         if self.game_name == 'three_matrix_games':
             return self.get_three_matrix_games(actions)

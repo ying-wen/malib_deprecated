@@ -2,7 +2,7 @@ import pytest
 
 from malib.environments import StochasticMatrixGame
 from malib.error import EnvironmentNotFound, WrongNumberOfAgent, \
-    WrongNumberOfAction, WrongNumberOfState
+    WrongNumberOfAction, WrongNumberOfState, WrongActionInputLength
 
 expected_config = [
     ("PollutionTax", 2, 2, 2),
@@ -44,3 +44,13 @@ def test_wrong_num_state(game_name, real_num_agent, real_num_action, real_num_st
 
     assert f"for {game_name} is {real_num_state}" in str(excinfo.value)
     assert "state" in str(excinfo.value)
+
+@pytest.mark.parametrize("game_name, real_num_agent, real_num_action, \
+    real_num_state", expected_config)
+def test_wrong_input_action_length(game_name, real_num_agent, real_num_action, real_num_state):
+    game = StochasticMatrixGame(game_name, real_num_agent, real_num_action, real_num_state)
+
+    with pytest.raises(WrongActionInputLength) as excinfo:
+        game.step([10] * (real_num_agent + 1))
+
+    assert f"Expected number of actions is {real_num_agent}" in str(excinfo.value)
