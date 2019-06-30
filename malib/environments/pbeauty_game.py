@@ -1,8 +1,10 @@
 import numpy as np
+
 from malib.spaces import Discrete, Box, MASpace, MAEnvSpec
+from malib.environments.base_game import BaseGame
+from malib.error import EnvironmentNotFound, RewardTypeNotFound, WrongActionInputLength
 
-
-class PBeautyGame:
+class PBeautyGame(BaseGame):
     def __init__(self, agent_num, game_name='pbeauty', p=0.67, reward_type='abs', action_range=(-1.,1.)):
         self.agent_num = agent_num
         self.p = p
@@ -15,8 +17,18 @@ class PBeautyGame:
         self.t = 0
         self.rewards = np.zeros((self.agent_num,))
 
+        if not self.game_name in PBeautyGame.get_game_list():
+            raise EnvironmentNotFound(f"The game {self.game_name} doesn't exists")
+
+        if self.game_name == 'pbeauty':
+            if not self.reward_type in PBeautyGame.get_game_list()[self.game_name]["reward_type"]:
+                raise RewardTypeNotFound(f"The reward type {self.reward_type} doesn't exists")
+
+
     def step(self, actions):
-        assert len(actions) == self.agent_num
+        if len(actions) != self.agent_num:
+            raise WrongActionInputLength(f"Expected number of actions is {self.agent_num}")
+            
         actions = np.array(actions).reshape((self.agent_num,))
         reward_n = np.zeros((self.agent_num,))
         if self.game_name == 'pbeauty':
@@ -51,12 +63,19 @@ class PBeautyGame:
         if mode == 'human':
             print(self.__str__())
 
-    def get_joint_reward(self):
+    def get_rewards(self):
         return self.rewards
 
     def terminate(self):
         pass
 
+    @staticmethod
+    def get_game_list():
+        return {
+            'pbeauty': {"reward_type": ['abs', 'one', 'sqrt', 'square']},
+            'entry': {"reward_type": []},
+        }
+
     def __str__(self):
-        content = 'Game Name {}, Number of Agent {}, Action Range {}\n'.format(self.game, self.agent_num, self.action_range)
+        content = 'Game Name {}, Number of Agent {}, Action Range {}\n'.format(self.game_name, self.agent_num, self.action_range)
         return content
