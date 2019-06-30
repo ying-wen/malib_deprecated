@@ -1,4 +1,4 @@
-"""A `garage.logger.LogOutput` for CSV files."""
+"""A `malib.logger.LogOutput` for CSV files."""
 import csv
 import warnings
 

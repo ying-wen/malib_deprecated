@@ -1,0 +1,1 @@
+from malib.trainers.multiagent_trainer import MATrainer
