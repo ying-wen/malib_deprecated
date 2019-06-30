@@ -55,7 +55,19 @@ pip3 install -e .
 
 ```shell
 cd examples
-python3 run_example.py
+python3 run_trainer.py
+```
+
+## Testing Code
+
+```shell
+python -m pytest tests
+```
+
+Testing With Keyword
+
+```shell
+python -m pytest tests -k "environments"
 ```
 
 ## Testing Code
