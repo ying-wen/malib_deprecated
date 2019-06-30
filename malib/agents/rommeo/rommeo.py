@@ -116,7 +116,6 @@ class ROMMEOAgent(OffPolicyAgent):
                                          batch['recent_opponent_actions'])
         tf.debugging.check_numerics(prior_loss, 'prior loss is inf or nan.')
         prior_grads = tape.gradient(prior_loss, prior_variable)
-        tf_utils.apply_gradients(prior_grads, prior_variable, self._opponent_prior_optimizer, self._gradient_clipping)
 
         opponent_policy_variable = self._opponent_policy.trainable_variables
         with tf.GradientTape(watch_accessed_variables=False) as tape:
@@ -126,7 +125,6 @@ class ROMMEOAgent(OffPolicyAgent):
                                                              batch['annealing'])
         tf.debugging.check_numerics(opponent_policy_loss, 'opponent policy loss is inf or nan.')
         opponent_policy_grads = tape.gradient(opponent_policy_loss, opponent_policy_variable)
-        tf_utils.apply_gradients(opponent_policy_grads, opponent_policy_variable, self._opponent_policy_optimizer, self._gradient_clipping)
 
         critic_variables = self._qf.trainable_variables
         with tf.GradientTape(watch_accessed_variables=False) as tape:
@@ -142,7 +140,6 @@ class ROMMEOAgent(OffPolicyAgent):
                                            weights=weights)
         tf.debugging.check_numerics(critic_loss, 'qf loss is inf or nan.')
         critic_grads = tape.gradient(critic_loss, critic_variables)
-        tf_utils.apply_gradients(critic_grads, critic_variables, self._critic_optimizer, self._gradient_clipping)
 
         actor_variables = self._policy.trainable_variables
         with tf.GradientTape(watch_accessed_variables=False) as tape:
@@ -153,9 +150,13 @@ class ROMMEOAgent(OffPolicyAgent):
                                          weights=weights)
         tf.debugging.check_numerics(actor_loss, 'Actor loss is inf or nan.')
         actor_grads = tape.gradient(actor_loss, actor_variables)
+
+        tf_utils.apply_gradients(prior_grads, prior_variable, self._opponent_prior_optimizer, self._gradient_clipping)
+        tf_utils.apply_gradients(opponent_policy_grads, opponent_policy_variable, self._opponent_policy_optimizer,
+                                 self._gradient_clipping)
+        tf_utils.apply_gradients(critic_grads, critic_variables, self._critic_optimizer, self._gradient_clipping)
         tf_utils.apply_gradients(actor_grads, actor_variables, self._actor_optimizer, self._gradient_clipping)
         self._train_step += 1
-
         if self._train_step % self._target_update_period == 0:
             self._update_target()
 

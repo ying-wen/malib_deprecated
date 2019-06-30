@@ -1,6 +1,6 @@
 [![Build](https://travis-ci.com/ying-wen/malib.svg?branch=master)](./VERSION)
+[![Supported TF Version](https://img.shields.io/badge/TensorFlow-2.0.0%2B-brightgreen.svg)](https://github.com/tensorflow/tensorflow/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-
 
 # Multi-Agent Reinforcement Learning Framework
 
@@ -20,12 +20,12 @@ MATrainer: In single agent, the trainer is included in the Agent Class. However,
 
 ## Installation
 
-Required Python Version: 3.6.5
+Required Python Version: >= 3.6 
 
 * Using Local Python Environment:
 
  ```shell
-cd maci
+cd malib
 sudo pip3 install -r requirements.txt
 sudo pip3 install -e .
  ```
@@ -33,7 +33,7 @@ sudo pip3 install -e .
 * Using virtualenv Environment:
 
 ```shell
-cd maci
+cd malib
 python3 -m venv env
 source env/bin/activate
 pip3 install -r requirements.txt
@@ -43,7 +43,7 @@ pip3 install -e.
 * Using Conda Environment:
 
 ```shell
-cd maci
+cd malib
 conda env create --file=environment.yml
 conda activate malib
 pip3 install -e .
@@ -55,7 +55,7 @@ pip3 install -e .
 
 ```shell
 cd examples
-python3 run_agents.py
+python3 run_example.py
 ```
 
 ## Testing Code
@@ -72,9 +72,4 @@ python -m pytest tests -k "environments"
 
 
 ## Reference Projects
-The project implementation has referred much and adopted some codes from the following projects:
-[agents](https://github.com/tensorflow/agents)
-,[maddpg](https://github.com/openai/maddpg)
-,[softlearning](https://github.com/rail-berkeley/softlearning)
-,[garage](https://github.com/rlworkgroup/garage)
-,[markov-game](https://github.com/aijunbai/markov-game). Thanks a lot!
+The project implementation has referred much and adopted some codes from the following projects: [agents](https://github.com/tensorflow/agents), [maddpg](https://github.com/openai/maddpg), [softlearning](https://github.com/rail-berkeley/softlearning), [garage](https://github.com/rlworkgroup/garage), [markov-game](https://github.com/aijunbai/markov-game). Thanks a lot!

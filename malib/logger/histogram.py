@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Histogram(np.ndarray):
-    """A `garage.logger` input representing a histogram of raw data.
+    """A `malib.logger` input representing a histogram of raw data.
 
     This is implemented as a typed view of a numpy array. It will accept
     input that `numpy.asarray` will.
