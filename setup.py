@@ -1,18 +1,10 @@
-import codecs
-from os import path
 from setuptools import find_packages
 from setuptools import setup
-
-here = path.abspath(path.dirname(__file__))
-
-# Get the long description from the README file
-with codecs.open(path.join(here, 'README.md'), encoding='utf-8') as f:
-  long_description = f.read()
 
 # TODO: confirm install requires
 install_requires = [
                     'six >= 1.10.0',
-                    'tensorflow==2.0.0-alpha0',
+                    'tensorflow==2.0.0-beta0',
                     'tfp-nightly',
                     'gym',
                     'matplotlib',
@@ -21,36 +13,53 @@ install_requires = [
                     'protobuf',
                     'joblib',
                     ]
-test_requirements = ['six >= 1.10.0', 'absl-py >= 0.1.6']
+
+extras = dict()
+extras['dev'] = [
+    # Please keep alphabetized
+    'coverage',
+    'flake8',
+    'flake8-docstrings',
+    'flake8-import-order',
+    'pep8-naming',
+    'pre-commit',
+    'pylint',
+    'pytest>=3.6',  # Required for pytest-cov on Python 3.6
+    'pytest-cov',
+    'sphinx',
+    'recommonmark',
+    'yapf',
+]
+
+with open('README.md') as f:
+    readme = f.read()
+
+with open('VERSION') as v:
+    version = v.read().strip()
 
 setup(
     name='malib',
-    version='0.0.1',
+    version=version,
     include_package_data=True,
     packages=find_packages(exclude=['docs']),  # Required
     install_requires=install_requires,
-    extras_require={},
-    tests_require=test_requirements,
-    description='malib: A FrameWork for Multi-Agent Deep Reinforcement Learning',
-    long_description=long_description,
-    classifiers=[  # Optional
+    extras_require=extras,
+    description='MALib: A FrameWork for Multi-Agent Learning',
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    license='MIT',
+    classifiers=[
         'Development Status :: 0 - Alpha',
-
         # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
-
         # Pick your license as you wish
-        'License :: OSI Approved :: Apache Software License',
-
-        'Programming Language :: Python :: 3.4',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
 
     ],
-    license='MIT',
     keywords='multi-agent reinforcement learning'
 )

@@ -1,5 +1,6 @@
 numpy
-tensorflow==2.0.0-alpha0
+tensorflow==2.0.0-beta0
+# tensorflow-gpu==2.0.0-beta0 # uncomment this line for TF-GPU installation
 tfp-nightly
 gym
 matplotlib
@@ -7,3 +8,4 @@ tensorboardX
 tabulate
 protobuf
 joblib
+pytest

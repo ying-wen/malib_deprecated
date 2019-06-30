@@ -1,10 +1,29 @@
 language: python
 
+git:
+  depth: false
+
+before_install:
+  - pip install --upgrade pip  # some TravisCI images have outdated pip
+
 python: "3.6.5"
+
+jobs:
+  include:
+    # special deploy stage for tag builds ONLY
+    - stage: deploy
+      if: tag IS present
+      script:
+        - echo "${TRAVIS_TAG}" > VERSION
+      after_script: skip
 
 install:
   - pip install -r requirements.txt
+  - pip install .[dev]
   - pip install .
 # command to run tests
 script:
   - pytest
+
+after_success:
+  - BRANCHES_TO_MERGE_REGEX='^d/' BRANCH_TO_MERGE_INTO=master GITHUB_REPO=ying-wen/malib bash scripts/travis-automerge.sh
