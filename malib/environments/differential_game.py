@@ -98,6 +98,7 @@ class DifferentialGame(BaseGame):
         info = {}
         done_n = np.array([True] * self.agent_num)
         self.t += 1
+        print('state_n, reward_n, done_n, info', state_n, reward_n, done_n, info)
         return state_n, reward_n, done_n, info
 
     def reset(self):

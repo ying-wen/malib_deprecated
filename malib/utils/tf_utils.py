@@ -84,3 +84,9 @@ def assert_shape(tensor, expected_shape):
     tensor_shape = tensor.shape
     assert len(tensor_shape) == len(expected_shape)
     assert all([a == b for a, b in zip(tensor_shape[1:], expected_shape[1:])])
+
+
+def remove_inf_nan(tensor):
+    tensor = tf.where(tf.math.is_nan(tensor), tf.zeros_like(tensor), tensor)
+    tensor = tf.where(tf.math.is_inf(tensor), tf.zeros_like(tensor), tensor)
+    return tensor

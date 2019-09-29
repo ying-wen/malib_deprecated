@@ -70,18 +70,5 @@ Testing With Keyword
 python -m pytest tests -k "environments"
 ```
 
-## Testing Code
-
-```shell
-python -m pytest tests
-```
-
-Testing With Keyword
-
-```shell
-python -m pytest tests -k "environments"
-```
-
-
 ## Reference Projects
-The project implementation has referred much and adopted some codes from the following projects: [agents](https://github.com/tensorflow/agents), [maddpg](https://github.com/openai/maddpg), [softlearning](https://github.com/rail-berkeley/softlearning), [garage](https://github.com/rlworkgroup/garage), [markov-game](https://github.com/aijunbai/markov-game). Thanks a lot!
+The project implementation has referred much and adopted some codes from the following projects: [agents](https://github.com/tensorflow/agents), [maddpg](https://github.com/openai/maddpg), [softlearning](https://github.com/rail-berkeley/softlearning), [garage](https://github.com/rlworkgroup/garage), [markov-game](https://github.com/aijunbai/markov-game), [multiagent-particle-env](https://github.com/openai/multiagent-particle-envs). Thanks a lot!

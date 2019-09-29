@@ -1,6 +1,7 @@
 # Created by yingwen at 2019-06-30
 from copy import deepcopy
 import numpy as np
+import tensorflow as tf
 
 
 def add_target_actions(batch_n, agents, batch_size):
@@ -23,7 +24,8 @@ def add_recent_batches(batches, agents, batch_size):
         recent_batch = agent.replay_buffer.recent_batch(batch_size)
         batch['recent_observations'] = recent_batch['observations']
         batch['recent_actions'] = recent_batch['actions']
-        batch['recent_opponent_actions'] = recent_batch['opponent_actions']
+        if 'opponent_actions' in recent_batch.keys():
+            batch['recent_opponent_actions'] = recent_batch['opponent_actions']
     return batches
 
 
@@ -31,7 +33,7 @@ def add_annealing(batches, step, annealing_scale=1.):
     annealing = .1 + np.exp(-0.1*max(step-10, 0)) * 500
     annealing = annealing_scale * annealing
     for batch in batches:
-        batch['annealing'] = annealing
+        batch['annealing'] = tf.constant(annealing, dtype=tf.float32)
     return batches
 
 

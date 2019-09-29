@@ -1,33 +1,15 @@
 import gym
 from gym import spaces
+from gym.envs.registration import EnvSpec
 import numpy as np
 from multiagent.multi_discrete import MultiDiscrete
-from malib.spaces import Box, MASpace,  MAEnvSpec
 
 # environment for all agents in the multiagent world
 # currently code assumes that no agents will be created/destroyed at runtime!
-
-def make_particle_env(game_name, benchmark=False):
-    import multiagent.scenarios as scenarios
-    scenario = scenarios.load(game_name + ".py").Scenario()
-    # create world
-    world = scenario.make_world()
-    # create multiagent environment
-    if benchmark:
-        env = ParticleEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
-    else:
-        env = ParticleEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
-    return env
-
-# environment for all agents in the multiagent world
-# currently code assumes that no agents will be created/destroyed at runtime!
-class ParticleEnv(gym.Env):
+class MultiAgentEnv(gym.Env):
     metadata = {
         'render.modes' : ['human', 'rgb_array']
     }
-
-    def terminate(self):
-        pass
 
     def __init__(self, world, reset_callback=None, reward_callback=None,
                  observation_callback=None, info_callback=None,
@@ -56,8 +38,6 @@ class ParticleEnv(gym.Env):
         # configure spaces
         self.action_space = []
         self.observation_space = []
-        obs_shapes = []
-        self.agent_num = len(self.agents)
         for agent in self.agents:
             total_action_space = []
             # physical action space
@@ -86,20 +66,9 @@ class ParticleEnv(gym.Env):
                 self.action_space.append(total_action_space[0])
             # observation space
             obs_dim = len(observation_callback(agent, self.world))
-            obs_shapes.append((obs_dim,))
             self.observation_space.append(spaces.Box(low=-np.inf, high=+np.inf, shape=(obs_dim,), dtype=np.float32))
             agent.action.c = np.zeros(self.world.dim_c)
-        # simpified for non-comm game
 
-        # self.action_spaces = MASpace(tuple(Box(low=-1., high=1., shape=(1,)) for _ in range(self.agent_num)))
-        # self.observation_spaces = MASpace(tuple(Discrete(1) for _ in range(self.agent_num)))
-
-        self.action_spaces = MASpace(tuple(Box(low=0., high=1., shape=(world.dim_p * 2 + 1,)) for _ in range(self.agent_num)))
-        # print(obs_shapes)
-        self.observation_spaces = MASpace(tuple(Box(low=-np.inf, high=+np.inf, shape=obs_shape) for obs_shape in obs_shapes))
-
-        self.env_specs = MAEnvSpec(self.observation_spaces, self.action_spaces)
-        self.action_range = [0., 1.]
         # rendering
         self.shared_viewer = shared_viewer
         if self.shared_viewer:
@@ -116,8 +85,7 @@ class ParticleEnv(gym.Env):
         self.agents = self.world.policy_agents
         # set action for each agent
         for i, agent in enumerate(self.agents):
-            action = np.array(action_n[i]).reshape((5,))
-            self._set_action(action, agent, self.action_space[i])
+            self._set_action(action_n[i], agent, self.action_space[i])
         # advance world state
         self.world.step()
         # record observation for each agent
@@ -203,7 +171,6 @@ class ParticleEnv(gym.Env):
                     action[0][:] = 0.0
                     action[0][d] = 1.0
                 if self.discrete_action_space:
-                    # print('action', action)
                     agent.action.u[0] += action[0][1] - action[0][2]
                     agent.action.u[1] += action[0][3] - action[0][4]
                 else:
@@ -243,7 +210,7 @@ class ParticleEnv(gym.Env):
                     else:
                         word = alphabet[np.argmax(other.state.c)]
                     message += (other.name + ' to ' + agent.name + ': ' + word + '   ')
-            # print(message)
+            print(message)
 
         for i in range(len(self.viewers)):
             # create viewers (if necessary)
@@ -366,5 +333,3 @@ class BatchMultiAgentEnv(gym.Env):
         for env in self.env_batch:
             results_n += env.render(mode, close)
         return results_n
-
-

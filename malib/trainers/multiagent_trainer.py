@@ -16,6 +16,7 @@ class MATrainer:
             training_interval=1,
             extra_experiences=['target_actions'],
             save_path=None,
+            is_rommeo=False
     ):
         self.env = env
         self.agents = agents
@@ -27,6 +28,8 @@ class MATrainer:
         self.extra_experiences = extra_experiences
         self.losses = []
         self.save_path = save_path
+
+        self.rommeo = is_rommeo
 
     def setup(self, env, agents, sampler):
         self.env = env
@@ -59,21 +62,26 @@ class MATrainer:
             if step < self.exploration_steps:
                 self.sampler.sample(explore=True)
                 continue
+
             self.sampler.sample()
-            batches = self.sample_batches()
-            for extra_experience in self.extra_experiences:
-                if extra_experience == 'annealing':
-                    batches = add_annealing(batches, step, annealing_scale=1.)
-                elif extra_experience == 'target_actions':
-                    batches = add_target_actions(batches, self.agents, self.batch_size)
-                elif extra_experience == 'recent_experiences':
-                    batches = add_recent_batches(batches, self.agents, self.batch_size)
-            agents_losses = []
             if step % self.training_interval == 0:
-                for agent, batch in zip(self.agents, batches):
+                batches = self.sample_batches()
+                for extra_experience in self.extra_experiences:
+                    if extra_experience == 'annealing':
+                        batches = add_annealing(batches, step - self.exploration_steps, annealing_scale=1.)
+                        # print('annealing', batches[0]['annealing'])
+                    elif extra_experience == 'target_actions':
+                        batches = add_target_actions(batches, self.agents, self.batch_size)
+                    elif extra_experience == 'recent_experiences':
+                        batches = add_recent_batches(batches, self.agents, self.batch_size)
+                agents_losses = []
+
+                for i, (agent, batch) in enumerate(zip(self.agents, batches)):
                     agent_losses = agent.train(batch)
                     agents_losses.append(agent_losses)
-            self.losses.append(agent_losses)
+                self.losses.append(agents_losses)
+                print('agent 1', self.losses[-1][0])
+                print('agent 2', self.losses[-1][1])
 
     def save(self):
         if self.save_path is None:
