@@ -6,10 +6,11 @@ import os
 import subprocess
 
 def render(env, filepath, episode_step, stitch=False):
-    print(episode_step)
-    frame = env.render(mode="rgb_array")[0]
-    Image.fromarray(frame).save(filepath + "." + ("%02d" % episode_step) + ".bmp")
-    print('xxx')
+    pass
+    # print(episode_step)
+    # frame = env.render(mode="rgb_array")[0]
+    # Image.fromarray(frame).save(filepath + "." + ("%02d" % episode_step) + ".bmp")
+    # print('xxx')
     # if stitch:
     #     print('yyyy')
     #     subprocess.run(["ffmpeg", "-v", "warning", "-r", "10", "-i", filepath + ".%02d.bmp", "-vcodec", "mpeg4", "-y", filepath + ".mp4"], shell=False, check=True)
