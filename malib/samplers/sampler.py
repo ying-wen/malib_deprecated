@@ -6,13 +6,9 @@ import os
 import subprocess
 
 def render(env, filepath, episode_step, stitch=False):
-    pass
-    # print(episode_step)
-    # frame = env.render(mode="rgb_array")[0]
+    frame = env.render(mode="rgb_array")[0]
     # Image.fromarray(frame).save(filepath + "." + ("%02d" % episode_step) + ".bmp")
-    # print('xxx')
     # if stitch:
-    #     print('yyyy')
     #     subprocess.run(["ffmpeg", "-v", "warning", "-r", "10", "-i", filepath + ".%02d.bmp", "-vcodec", "mpeg4", "-y", filepath + ".mp4"], shell=False, check=True)
     #     subprocess.run(["rm -f " + filepath + ".*.bmp"], shell=True, check=True)
 
@@ -124,18 +120,11 @@ class MASampler(Sampler):
             )
 
         self._current_observation_n = next_observation_n
-        # for i, rew in enumerate(reward_n):
-        #     self.episode_rewards[-1] += rew
-        #     self.agent_rewards[i][-1] += rew
 
         if self._n_episodes % 100 == 0:
             render(self.env,
-                   "./render/episode_%08d" % self._path_length,
+                   "/tmp/episode_%08d" % self._path_length,
                    self._path_length,)
-
-        # if self.step % (25 * 1000) == 0:
-        #     print("steps: {}, episodes: {}, mean episode reward: {}".format(
-        #                 self.step, len(self.episode_rewards), np.mean(self.episode_rewards[-1000:])))
 
         if np.all(done_n) or self._path_length >= self._max_path_length:
             self._current_observation_n = self.env.reset()
@@ -144,7 +133,7 @@ class MASampler(Sampler):
             self._last_path_return = self._path_return
             if self._n_episodes % 100 == 0:
                 render(self.env,
-                       "./render/episode_%08d" % self._path_length,
+                       "/tmp/episode_%08d" % self._path_length,
                        self._path_length,
                        True)
             self._path_length = 0
@@ -210,9 +199,7 @@ class SingleSampler(Sampler):
             action = self.env.action_space.sample()
         else:
             action = np.squeeze(self.agent.act(self._current_observation))
-        # action = self.agent.act(self._current_observation)
-        # print(action)
-        # exit(0)
+
         action = np.asarray(action)
 
         next_observation, reward, done, info = self.env.step(action)
