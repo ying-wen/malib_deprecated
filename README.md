@@ -46,7 +46,7 @@ pip3 install -e.
 cd malib
 conda env create --file=environment.yml
 conda activate malib
-pip3 install -e .
+conda develop ./
 
 ```
 
@@ -55,7 +55,7 @@ pip3 install -e .
 
 ```shell
 cd examples
-python3 run_trainer.py
+python run_trainer.py
 ```
 
 ## Testing Code

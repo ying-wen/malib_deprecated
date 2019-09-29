@@ -9,4 +9,6 @@ tabulate
 protobuf
 joblib
 pytest
+Pillow
+gast==0.2.2
 # git+https://github.com/openai/multiagent-particle-envs.git
