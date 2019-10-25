@@ -96,6 +96,7 @@ class LatentSpacePolicy(StochasticPolicy):
 
         assert smoothing_coefficient is None or 0 <= smoothing_coefficient <= 1
         self._smoothing_alpha = smoothing_coefficient or 0
+        # self._smoothing_alpha = 0
         self._smoothing_beta = (
             np.sqrt(1.0 - np.power(self._smoothing_alpha, 2.0))
             / (1.0 - self._smoothing_alpha))

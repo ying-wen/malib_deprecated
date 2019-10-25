@@ -37,7 +37,7 @@ cd malib
 python3 -m venv env
 source env/bin/activate
 pip3 install -r requirements.txt
-pip3 install -e.
+pip3 install -e .
 ```
 
 * Using Conda Environment:
@@ -46,16 +46,24 @@ pip3 install -e.
 cd malib
 conda env create --file=environment.yml
 conda activate malib
-pip3 install -e .
-
+conda develop ./
 ```
 
+or
+
+```shell
+cd malib
+conda env create -n malib python=3.7
+conda activate malib
+pip install -r requirements.txt
+conda develop ./
+```
 
 ## Run Example
 
 ```shell
 cd examples
-python3 run_trainer.py
+python run_trainer.py
 ```
 
 ## Testing Code
@@ -69,19 +77,6 @@ Testing With Keyword
 ```shell
 python -m pytest tests -k "environments"
 ```
-
-## Testing Code
-
-```shell
-python -m pytest tests
-```
-
-Testing With Keyword
-
-```shell
-python -m pytest tests -k "environments"
-```
-
 
 ## Reference Projects
-The project implementation has referred much and adopted some codes from the following projects: [agents](https://github.com/tensorflow/agents), [maddpg](https://github.com/openai/maddpg), [softlearning](https://github.com/rail-berkeley/softlearning), [garage](https://github.com/rlworkgroup/garage), [markov-game](https://github.com/aijunbai/markov-game). Thanks a lot!
+The project implementation has referred much and adopted some codes from the following projects: [agents](https://github.com/tensorflow/agents), [maddpg](https://github.com/openai/maddpg), [softlearning](https://github.com/rail-berkeley/softlearning), [garage](https://github.com/rlworkgroup/garage), [markov-game](https://github.com/aijunbai/markov-game), [multiagent-particle-env](https://github.com/openai/multiagent-particle-envs). Thanks a lot!

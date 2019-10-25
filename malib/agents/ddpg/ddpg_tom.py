@@ -74,10 +74,15 @@ class DDPGToMAgent(OffPolicyAgent):
         )
 
     def act(self, observation, step=None, use_target=False):
-        opponent_action = self._opponent_policy.get_action_np(observation)
-        # print(opponent_action, 'opponent_action', observation, 'observation')
+        if use_target and self._target_policy is not None:
+            opponent_action = self._opponent_policy.get_actions_np(observation)
+            policy_input = [observation, opponent_action]
+            policy = self._target_policy
+            return policy.get_actions_np(policy_input)
+
+        opponent_action = self._opponent_policy.get_actions_np(np.array([observation]))[0]
         policy_input = [observation, opponent_action]
-        # policy = self._policy
+
         if self._exploration_strategy is not None and self._exploration_status:
             if step is None:
                 step = self._train_step
@@ -85,9 +90,8 @@ class DDPGToMAgent(OffPolicyAgent):
                 self._exploration_strategy.reset()
             return self._exploration_strategy.get_action(self._train_step, policy_input, self._policy, extend_dim=False)
         policy = self._policy
-        if use_target and self._target_policy is not None:
-            policy = self._target_policy
-        return policy.get_action_np(policy_input, extend_dim=False)
+
+        return policy.get_action_np(policy_input)
 
     def init_opt(self):
         tf_utils.soft_variables_update(

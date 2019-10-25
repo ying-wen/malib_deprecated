@@ -1,8 +1,16 @@
 import numpy as np
 
 from malib.logger import logger, tabular
+from PIL import Image
+import os
+import subprocess
 
-
+def render(env, filepath, episode_step, stitch=False):
+    frame = env.render(mode="rgb_array")[0]
+    # Image.fromarray(frame).save(filepath + "." + ("%02d" % episode_step) + ".bmp")
+    # if stitch:
+    #     subprocess.run(["ffmpeg", "-v", "warning", "-r", "10", "-i", filepath + ".%02d.bmp", "-vcodec", "mpeg4", "-y", filepath + ".mp4"], shell=False, check=True)
+    #     subprocess.run(["rm -f " + filepath + ".*.bmp"], shell=True, check=True)
 
 
 class Sampler(object):
@@ -82,7 +90,7 @@ class MASampler(Sampler):
         if self._current_observation_n is None:
             self._current_observation_n = self.env.reset()
         action_n = []
-        print(self._current_observation_n)
+        # print(self._current_observation_n)
         # print(self._current_observation_n.shape)
         if explore:
             action_n = self.env.action_spaces.sample()
@@ -106,27 +114,29 @@ class MASampler(Sampler):
                 observation=self._current_observation_n[i].astype(np.float32),
                 action=action_n[i].astype(np.float32),
                 reward=reward_n[i].astype(np.float32),
-                terminal=done_n[i].astype(np.float32),
+                terminal=done_n[i],
                 next_observation=next_observation_n[i].astype(np.float32),
                 opponent_action=opponent_action.astype(np.float32)
             )
 
         self._current_observation_n = next_observation_n
-        # for i, rew in enumerate(reward_n):
-        #     self.episode_rewards[-1] += rew
-        #     self.agent_rewards[i][-1] += rew
 
-        if self.step % (25 * 1000) == 0:
-            print("steps: {}, episodes: {}, mean episode reward: {}".format(
-                        self.step, len(self.episode_rewards), np.mean(self.episode_rewards[-1000:])))
+        if self._n_episodes % 100 == 0:
+            render(self.env,
+                   "/tmp/episode_%08d" % self._path_length,
+                   self._path_length,)
 
         if np.all(done_n) or self._path_length >= self._max_path_length:
             self._current_observation_n = self.env.reset()
             self._max_path_return = np.maximum(self._max_path_return, self._path_return)
             self._mean_path_return = self._path_return / self._path_length
             self._last_path_return = self._path_return
+            if self._n_episodes % 100 == 0:
+                render(self.env,
+                       "/tmp/episode_%08d" % self._path_length,
+                       self._path_length,
+                       True)
             self._path_length = 0
-
             self._path_return = np.zeros(self.agent_num)
             self._n_episodes += 1
             self.log_diagnostics()
@@ -142,4 +152,100 @@ class MASampler(Sampler):
             tabular.record('last-path-return_agent_{}'.format(i), self._last_path_return[i])
         tabular.record('episodes', self._n_episodes)
         tabular.record('episode_reward', self._n_episodes)
+        tabular.record('total-samples', self._total_samples)
+
+
+class SingleSampler(Sampler):
+    def __init__(self, max_path_length, min_pool_size=10e4, batch_size=64, **kwargs):
+        self._max_path_length = max_path_length
+        self._min_pool_size = min_pool_size
+        self._batch_size = batch_size
+        self._path_length = 0
+        self._path_return = np.zeros(1)
+        self._last_path_return = np.zeros(1)
+        self._max_path_return = np.array([-np.inf], dtype=np.float32)
+        self._n_episodes = 0
+        self._total_samples = 0
+        self.step = 0
+        self._current_observation = None
+        self.env = None
+        self.agent = None
+
+        # FIXME : temporary recorder for boat game, delete it afterwards.
+        self.episode_rewards = []
+        self.episode_positions = []
+
+    def set_policy(self, policy):
+        self.agent.policy = policy
+
+    def batch_ready(self):
+        enough_samples = max(self.agent.replay_buffer.size) >= self._min_pool_size
+        return enough_samples
+
+    def random_batch(self):
+        return self.agent.pool.random_batch(self._batch_size)
+
+    def initialize(self, env, agent):
+        self._current_observation = None
+        self.env = env
+        self.agent = agent
+
+    def sample(self, explore=False):
+        self.step += 1
+        if self._current_observation is None:
+            self._current_observation = self.env.reset()
+
+        if explore:
+            action = self.env.action_space.sample()
+        else:
+            action = np.squeeze(self.agent.act(self._current_observation))
+
+        action = np.asarray(action)
+
+        next_observation, reward, done, info = self.env.step(action)
+        done = np.array(int(done))
+
+        self._path_length += 1
+        self._path_return += reward
+        self._total_samples += 1
+
+        self.agent.replay_buffer.add_sample(observation=self._current_observation,
+                                            action=action, reward=reward,
+                                            terminal=done,
+                                            next_observation=next_observation)
+
+        self._current_observation = next_observation
+
+
+        if np.all(done) or self._path_length >= self._max_path_length:
+            self._max_path_return = np.maximum(self._max_path_return, self._path_return)
+            self._mean_path_return = self._path_return / self._path_length
+            self._last_path_return = self._path_return
+            self._terminal_position = self._current_observation
+
+            self._current_observation = self.env.reset()
+            self._path_length = 0
+            self._path_return = np.zeros(1)
+            self._n_episodes += 1
+
+            # FIXME : delete it afterwards.
+            if explore is False:
+                self.episode_rewards.append(self._last_path_return.item())
+                self.episode_positions.append([self._terminal_position[0].item(), self._terminal_position[1].item()])
+
+            self.log_diagnostics()
+            logger.log(tabular)
+            logger.dump_all()
+
+        else:
+            self._current_observation = next_observation
+
+    def log_diagnostics(self):
+        tabular.record('max-path-return_agent', self._max_path_return[0])
+        tabular.record('mean-path-return_agent', self._mean_path_return[0])
+        tabular.record('last-path-return_agent', self._last_path_return[0])
+        tabular.record('episodes', self._n_episodes)
+        tabular.record('episode_reward', self._n_episodes)
+        tabular.record('terminal_position_x', self._terminal_position[0])
+        tabular.record('terminal_position_y', self._terminal_position[1])
         tabular.record('total-samples', self._total_samples)
