@@ -37,7 +37,7 @@ cd malib
 python3 -m venv env
 source env/bin/activate
 pip3 install -r requirements.txt
-pip3 install -e.
+pip3 install -e .
 ```
 
 * Using Conda Environment:
@@ -47,9 +47,17 @@ cd malib
 conda env create --file=environment.yml
 conda activate malib
 conda develop ./
-
 ```
 
+or
+
+```shell
+cd malib
+conda env create -n malib python=3.7
+conda activate malib
+pip install -r requirements.txt
+conda develop ./
+```
 
 ## Run Example
 
