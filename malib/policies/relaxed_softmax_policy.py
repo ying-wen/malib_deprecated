@@ -13,12 +13,12 @@ import tensorflow_probability as tfp
 from malib.networks.mlp import MLP
 from .base_policy import StochasticPolicy
 
+
 class RelaxedSoftmaxPolicy(StochasticPolicy):
     def __init__(self, input_shapes, output_shape, temperature=.5, preprocessor=None, name='gaussian_policy', repara=True,
                  *args,
                  **kwargs):
         """
-
         Args:
             input_shapes:
             output_shape:
@@ -55,7 +55,7 @@ class RelaxedSoftmaxPolicy(StochasticPolicy):
 
 
         def action_fn(inputs):
-            temperature, logits =  inputs
+            temperature, logits = inputs
             return tfp.distributions.RelaxedOneHotCategorical(temperature, logits=logits).sample()
         # actions_dist =
 
@@ -170,13 +170,12 @@ class RelaxedSoftmaxPolicy(StochasticPolicy):
 class RelaxedSoftmaxMLPPolicy(RelaxedSoftmaxPolicy):
     def __init__(self, hidden_layer_sizes, activation=tf.keras.layers.ReLU(), output_activation='linear',
                  pi_std=None, *args, **kwargs):
+        self._Serializable__initialize(locals())
         self._hidden_layer_sizes = hidden_layer_sizes
         self._activation = activation
         self._output_activation = output_activation
 
         self._pi_std = pi_std
-
-        self._Serializable__initialize(locals())
         super(RelaxedSoftmaxMLPPolicy, self).__init__(*args, **kwargs)
 
     def _logits_net(self, input_shapes, output_size):

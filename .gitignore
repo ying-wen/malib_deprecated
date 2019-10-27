@@ -337,3 +337,5 @@ Thumbs.db
 /experiments
 /examples
 log/
+
+.vscode

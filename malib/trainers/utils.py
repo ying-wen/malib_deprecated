@@ -7,14 +7,14 @@ import tensorflow as tf
 def add_target_actions(batch_n, agents, batch_size):
     target_actions_n = []
     for i, agent in enumerate(agents):
-        print(batch_n[i]['next_observations'].shape)
+        # print(batch_n[i]['next_observations'].shape)
         target_actions_n.append(agent.act(batch_n[i]['next_observations'], use_target=True))
 
     for i in range(len(agents)):
         target_actions = target_actions_n[i]
         opponent_target_actions = np.reshape(np.delete(deepcopy(target_actions_n), i, 0), (batch_size, -1))
         target_actions = np.concatenate((target_actions, opponent_target_actions), 1)
-        assert target_actions.shape[0] == batch_size
+        # assert target_actions.shape[0] == batch_size
         batch_n[i]['target_actions'] = target_actions
     return batch_n
 

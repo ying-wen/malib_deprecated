@@ -275,13 +275,18 @@ def get_pr2k_soft_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_siz
         agent_id=agent_id,
     )
 
-
-def get_maddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size):
+def get_maddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type='dete'):
     observation_space = env.env_specs.observation_space[agent_id]
     action_space = env.env_specs.action_space[agent_id]
+    if policy_type == 'dete':
+        policy_fn = DeterministicMLPPolicy
+        exploration_strategy = OUExploration(action_space)
+    elif policy_type == 'gumble':
+        policy_fn = RelaxedSoftmaxMLPPolicy
+        exploration_strategy = None
     return MADDPGAgent(
         env_specs=env.env_specs,
-        policy=DeterministicMLPPolicy(
+        policy=policy_fn(
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
@@ -298,7 +303,7 @@ def get_maddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size):
                                           opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
                                           max_replay_buffer_size=max_replay_buffer_size
                                           ),
-        exploration_strategy=OUExploration(action_space),
+        exploration_strategy=exploration_strategy,
         gradient_clipping=10.,
         agent_id=agent_id,
     )

@@ -47,8 +47,7 @@ class MADDPGAgent(OffPolicyAgent):
                                           train_sequence_length=train_sequence_length, name=name, )
 
     def act(self, observation, step=None, use_target=False):
-        # if use_target is False:
-        #     observation = observation[None]
+        
         # if use_target and self._target_policy is not None:
         #     return self._target_policy.get_actions_np(observation)
         # if self._exploration_strategy is not None and self._exploration_status:
@@ -59,7 +58,9 @@ class MADDPGAgent(OffPolicyAgent):
         #     return self._exploration_strategy.get_actions(self._train_step, observation, self._policy)
         # policy = self._policy
         # return policy.get_actions_np(observation)
-        observation = np.array([observation])
+        if use_target is False:
+            # observation = observation[None]
+            observation = np.array([observation])
         if self._exploration_strategy is not None and self._exploration_status:
             if step is None:
                 step = self._train_step
@@ -69,6 +70,7 @@ class MADDPGAgent(OffPolicyAgent):
         policy = self._policy
         if use_target and self._target_policy is not None:
             policy = self._target_policy
+            return policy.get_actions_np(observation)
         return policy.get_actions_np(observation)[0]
 
     def init_opt(self):
@@ -126,26 +128,17 @@ class MADDPGAgent(OffPolicyAgent):
     @tf.function
     def critic_loss(self, observations, actions, opponent_actions, target_actions, rewards, next_observations,
                     weights=None):
-        """Computes the critic loss for DDPG training.
-        Args:
-          observations: A batch of observations.
-          actions: A batch of actions.
-          rewards: A batch of rewards.
-          next_observations: A batch of next observations.
-          weights: Optional scalar or element-wise (per-batch-entry) importance
-            weights.
-        Returns:
-          critic_loss: A scalar critic loss.
-        """
-        rewards = tf.reshape(rewards, shape=(-1, 1))
-        # target_actions = self._target_policy.get_actions(next_observations)
+        # rewards = tf.reshape(rewards, shape=(-1, 1))
+        
         target_critic_input = [next_observations, target_actions]
         target_q_values = self._target_qf.get_values(target_critic_input)
-        target_q_values = tf.squeeze(target_q_values)
 
+        target_q_values = tf.squeeze(target_q_values)
         td_targets = tf.stop_gradient(self._reward_scale * rewards + self._gamma * target_q_values)
+
         critic_net_input = [observations, tf.concat((actions, opponent_actions), axis=1)]
         q_values = self._qf.get_values(critic_net_input)
+
         q_values = tf.squeeze(q_values)
         critic_loss = self._td_errors_loss_fn(reduction=tf.losses.Reduction.NONE)(td_targets, q_values)
 
