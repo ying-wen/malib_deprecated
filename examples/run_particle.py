@@ -36,6 +36,10 @@ def get_agent_by_type(type_name, i, env,
         return get_ddpg_agent(env, agent_id=i,
                               hidden_layer_sizes=hidden_layer_sizes,
                               max_replay_buffer_size=max_replay_buffer_size, policy_type='gumble')
+    elif type_name == 'MADDPG':
+        return get_maddpg_agent(env, agent_id=i,
+                              hidden_layer_sizes=hidden_layer_sizes,
+                              max_replay_buffer_size=max_replay_buffer_size, policy_type='gumble')
 
 
 def train_fixed(seed, agent_setting, game_name='ma_softq'):
@@ -66,7 +70,7 @@ def train_fixed(seed, agent_setting, game_name='ma_softq'):
     trainer = MATrainer(env=env, agents=agents, sampler=sampler, steps=training_steps,
                         exploration_steps=exploration_steps,
                         training_interval=10,
-                        extra_experiences=['annealing', 'recent_experiences'],
+                        extra_experiences=['annealing', 'recent_experiences', 'target_actions'],
                         batch_size=batch_size)
 
     trainer.run()
@@ -79,8 +83,9 @@ def main():
         # 'ROMMEO_ROMMEO_ROMMEO',
         # 'PR2S_PR2S_PR2S',
         # 'PR2_PR2_PR2',
-        'SAC_SAC_SAC',
-        # 'DDPG_DDPG_DDPG',
+        # 'SAC_SAC_SAC',
+        'DDPG_DDPG_DDPG',
+        # 'MADDPG_MADDPG_MADDPG',
     ]
     game = 'simple_spread'
     for setting in settings:
