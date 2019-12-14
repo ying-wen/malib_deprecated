@@ -6,7 +6,7 @@ import os
 import subprocess
 
 def render(env, filepath, episode_step, stitch=False):
-    frame = env.render(mode="rgb_array")[0]
+    frame = env.render(mode="rgb_array")
     # Image.fromarray(frame).save(filepath + "." + ("%02d" % episode_step) + ".bmp")
     # if stitch:
     #     subprocess.run(["ffmpeg", "-v", "warning", "-r", "10", "-i", filepath + ".%02d.bmp", "-vcodec", "mpeg4", "-y", filepath + ".mp4"], shell=False, check=True)
