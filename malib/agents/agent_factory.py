@@ -22,10 +22,10 @@ from malib.policies.explorations.ou_exploration import OUExploration
 # from examples.third_party.nn import GaussianPolicy
 
 
-def get_ddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type='dete'):
+def get_ddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type='deter'):
     observation_space = env.env_specs.observation_space[agent_id]
     action_space = env.env_specs.action_space[agent_id]
-    if policy_type == 'dete':
+    if policy_type == 'deter':
         policy_fn = DeterministicMLPPolicy
         exploration_strategy = OUExploration(action_space)
     elif policy_type == 'gumble':

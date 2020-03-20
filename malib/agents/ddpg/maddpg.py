@@ -59,7 +59,12 @@ class MADDPGAgent(OffPolicyAgent):
         #     return self._exploration_strategy.get_actions(self._train_step, observation, self._policy)
         # policy = self._policy
         # return policy.get_actions_np(observation)
-        observation = np.array([observation])
+        if len(observation.shape) < 2:
+            observation = np.array([observation])
+        if use_target and self._target_policy is not None:
+            policy = self._target_policy
+            actions = policy.get_actions_np(observation)
+            return policy.get_actions_np(observation)
         if self._exploration_strategy is not None and self._exploration_status:
             if step is None:
                 step = self._train_step
@@ -67,8 +72,6 @@ class MADDPGAgent(OffPolicyAgent):
                 self._exploration_strategy.reset()
             return self._exploration_strategy.get_action(self._train_step, observation, self._policy)
         policy = self._policy
-        if use_target and self._target_policy is not None:
-            policy = self._target_policy
         return policy.get_actions_np(observation)[0]
 
     def init_opt(self):
