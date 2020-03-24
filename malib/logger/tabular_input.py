@@ -18,14 +18,15 @@ class TabularInput:
         self._dict = {}
         self._recorded = set()
         self._prefixes = []
-        self._prefix_str = ''
+        self._prefix_str = ""
         self._warned_once = set()
         self._disable_warnings = False
 
     def __str__(self):
         """Return a string representation of the table for the logger."""
         return tabulate.tabulate(
-            sorted(self.as_primitive_dict.items(), key=lambda x: x[0]))
+            sorted(self.as_primitive_dict.items(), key=lambda x: x[0])
+        )
 
     def record(self, key, val):
         """Save key/value entries for the table.
@@ -47,31 +48,31 @@ class TabularInput:
         """Mark all keys."""
         self._recorded |= self._dict.keys()
 
-    def record_misc_stat(self, key, values, placement='back'):
+    def record_misc_stat(self, key, values, placement="back"):
         """Record statistics of an array.
 
         :param key: String key corresponding to the values.
         :param values: Array of values to be analyzed.
         :param placement: Whether to put the prefix in front or in the back.
         """
-        if placement == 'front':
+        if placement == "front":
             front = ""
             back = key
         else:
             front = key
             back = ""
         if values:
-            self.record(front + 'Average' + back, np.average(values))
-            self.record(front + 'Std' + back, np.std(values))
-            self.record(front + 'Median' + back, np.median(values))
-            self.record(front + 'Min' + back, np.min(values))
-            self.record(front + 'Max' + back, np.max(values))
+            self.record(front + "Average" + back, np.average(values))
+            self.record(front + "Std" + back, np.std(values))
+            self.record(front + "Median" + back, np.median(values))
+            self.record(front + "Min" + back, np.min(values))
+            self.record(front + "Max" + back, np.max(values))
         else:
-            self.record(front + 'Average' + back, np.nan)
-            self.record(front + 'Std' + back, np.nan)
-            self.record(front + 'Median' + back, np.nan)
-            self.record(front + 'Min' + back, np.nan)
-            self.record(front + 'Max' + back, np.nan)
+            self.record(front + "Average" + back, np.nan)
+            self.record(front + "Std" + back, np.nan)
+            self.record(front + "Median" + back, np.nan)
+            self.record(front + "Min" + back, np.nan)
+            self.record(front + "Max" + back, np.nan)
 
     @contextlib.contextmanager
     def prefix(self, prefix):
@@ -97,9 +98,9 @@ class TabularInput:
         for k, v in self._dict.items():
             if k not in self._recorded:
                 warning = (
-                    'TabularInput {{{}: type({})}} was not accepted by any '
-                    'output'.format(k,
-                                    type(v).__name__))
+                    "TabularInput {{{}: type({})}} was not accepted by any "
+                    "output".format(k, type(v).__name__)
+                )
                 self._warn(warning)
 
         self._dict.clear()
@@ -111,20 +112,17 @@ class TabularInput:
         :param prefix: The string prefix to be prepended to logs.
         """
         self._prefixes.append(prefix)
-        self._prefix_str = ''.join(self._prefixes)
+        self._prefix_str = "".join(self._prefixes)
 
     def pop_prefix(self):
         """Pop prefix that was appended to the printed table."""
         del self._prefixes[-1]
-        self._prefix_str = ''.join(self._prefixes)
+        self._prefix_str = "".join(self._prefixes)
 
     @property
     def as_primitive_dict(self):
         """Return the dictionary, excluding all nonprimitive types."""
-        return {
-            key: val
-            for key, val in self._dict.items() if np.isscalar(val)
-        }
+        return {key: val for key, val in self._dict.items() if np.isscalar(val)}
 
     @property
     def as_dict(self):
@@ -138,8 +136,7 @@ class TabularInput:
         is the one printed.
         """
         if not self._disable_warnings and msg not in self._warned_once:
-            warnings.warn(
-                colorize(msg, 'yellow'), TabularInputWarning, stacklevel=3)
+            warnings.warn(colorize(msg, "yellow"), TabularInputWarning, stacklevel=3)
         self._warned_once.add(msg)
         return msg
 

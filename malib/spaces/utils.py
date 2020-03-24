@@ -23,10 +23,10 @@ def flatten(space, obs):
         return to_onehot(obs, space.n)
     elif isinstance(space, gym.spaces.Dict):
         return np.concatenate(
-            [flatten(space.spaces[key], obs[key]) for key in space.spaces.keys()])
+            [flatten(space.spaces[key], obs[key]) for key in space.spaces.keys()]
+        )
     else:
-        return np.concatenate(
-            [flatten(c, xi) for c, xi in zip(space.spaces, obs)])
+        return np.concatenate([flatten(c, xi) for c, xi in zip(space.spaces, obs)])
 
 
 def flatten_n(space, obs):
@@ -57,15 +57,13 @@ def unflatten(space, obs):
 def unflatten_n(space, obs):
     if isinstance(space, gym.spaces.Box):
         obs = np.asarray(obs)
-        return obs.reshape((obs.shape[0], ) + space.shape)
+        return obs.reshape((obs.shape[0],) + space.shape)
     elif isinstance(space, gym.spaces.Discrete):
         return from_onehot_n(obs)
     else:
         dims = [flat_dim(c) for c in space.spaces]
         flat_xs = np.split(obs, np.cumsum(dims)[:-1], axis=-1)
-        unflat_xs = [
-            unflatten_n(c, xi) for c, xi in zip(space.spaces, flat_xs)
-        ]
+        unflat_xs = [unflatten_n(c, xi) for c, xi in zip(space.spaces, flat_xs)]
         unflat_xs_grouped = list(zip(*unflat_xs))
         return unflat_xs_grouped
 
@@ -87,7 +85,6 @@ def from_onehot(v):
 
 
 def from_onehot_n(v):
-    if ((isinstance(v, np.ndarray) and not v.size)
-            or (isinstance(v, list) and not v)):
+    if (isinstance(v, np.ndarray) and not v.size) or (isinstance(v, list) and not v):
         return []
     return np.nonzero(v)[1]

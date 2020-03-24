@@ -9,10 +9,9 @@ from malib.agents.tabular.q_learning.base_q import QAgent
 
 
 class FMQAgent(QAgent):
-    def __init__(self, id_, action_num, env, tau=500, c=10,
-                 **kwargs):
+    def __init__(self, id_, action_num, env, tau=500, c=10, **kwargs):
         super().__init__(id_, action_num, env, **kwargs)
-        self.name = 'FMQ'
+        self.name = "FMQ"
         self.Q = defaultdict(partial(np.random.rand, self.action_num))
         self.tau = tau
         self.init_tau = tau
@@ -25,7 +24,7 @@ class FMQAgent(QAgent):
         if r >= self.max_R[s][a]:
             self.max_R[s][a] = r
             self.max_R_a_counter[s][a] += 1.0
-        self.max_R_freq[s][a] = self.max_R_a_counter[s][a]/self.count_R[s][a]
+        self.max_R_freq[s][a] = self.max_R_a_counter[s][a] / self.count_R[s][a]
 
     def update(self, s, a, o, r, s2, env, done=False):
         self.count_R[s][a] += 1.0
@@ -48,7 +47,7 @@ class FMQAgent(QAgent):
         return np.max(self.Q[s])
 
     def update_policy(self, s, a, env):
-        tau = np.exp(-0.1*self.epoch)*self.init_tau+1.0
+        tau = np.exp(-0.1 * self.epoch) * self.init_tau + 1.0
         Q = self.Q[s]
-        pi = Q + self.c * self.max_R_freq[s]*self.max_R[s]
-        self.pi[s] = np.exp(pi/tau)/np.sum(np.exp(pi/tau))
+        pi = Q + self.c * self.max_R_freq[s] * self.max_R[s]
+        self.pi[s] = np.exp(pi / tau) / np.sum(np.exp(pi / tau))

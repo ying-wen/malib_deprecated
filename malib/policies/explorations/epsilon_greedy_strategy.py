@@ -6,6 +6,7 @@ Random exploration according to the value of epsilon.
 import numpy as np
 
 from malib.policies.explorations.base_exploration import ExplorationBase
+
 # from garage.misc.overrides import overrides
 # TODO: maybe follow this to optimize performance: https://github.com/rlworkgroup/garage/blob/master/garage/misc/overrides.py
 
@@ -27,12 +28,14 @@ class EpsilonGreedyExploration(ExplorationBase):
         decay_ratio: Fraction of total steps for epsilon decay.
     """
 
-    def __init__(self,
-                 action_space,
-                 total_timesteps,
-                 max_epsilon=1.0,
-                 min_epsilon=0.02,
-                 decay_ratio=0.1):
+    def __init__(
+        self,
+        action_space,
+        total_timesteps,
+        max_epsilon=1.0,
+        min_epsilon=0.02,
+        decay_ratio=0.1,
+    ):
         self._max_epsilon = max_epsilon
         self._min_epsilon = min_epsilon
         self._decay_period = int(total_timesteps * decay_ratio)
@@ -77,4 +80,5 @@ class EpsilonGreedyExploration(ExplorationBase):
     def _decay(self):
         if self._epsilon > self._min_epsilon:
             self._epsilon -= (
-                self._max_epsilon - self._min_epsilon) / self._decay_period
+                self._max_epsilon - self._min_epsilon
+            ) / self._decay_period

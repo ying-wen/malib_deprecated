@@ -14,11 +14,11 @@ class Snapshotter:
     def reset(self):
         """Reset the snapshotter to default settings."""
         self._snapshot_dir = None
-        self._snapshot_mode = 'all'
+        self._snapshot_mode = "all"
         self._snapshot_gap = 1
 
     @property
-    def snapshot_dir(self, ):
+    def snapshot_dir(self,):
         """Save snapshots in this directory."""
         return self._snapshot_dir
 
@@ -28,7 +28,7 @@ class Snapshotter:
         self._snapshot_dir = dir_name
 
     @property
-    def snapshot_mode(self, ):
+    def snapshot_mode(self,):
         """Take this type of snapshot.
 
         See save_itr_params.
@@ -40,7 +40,7 @@ class Snapshotter:
         self._snapshot_mode = mode
 
     @property
-    def snapshot_gap(self, ):
+    def snapshot_gap(self,):
         """Wait this number of iterations before taking another snapshot."""
         return self._snapshot_gap
 
@@ -53,28 +53,25 @@ class Snapshotter:
         if self._snapshot_dir:
             file_name = None
 
-            if self._snapshot_mode == 'all':
-                file_name = osp.join(self._snapshot_dir, 'itr_%d.pkl' % itr)
-            elif self._snapshot_mode == 'last':
+            if self._snapshot_mode == "all":
+                file_name = osp.join(self._snapshot_dir, "itr_%d.pkl" % itr)
+            elif self._snapshot_mode == "last":
                 # override previous params
-                file_name = osp.join(self._snapshot_dir, 'params.pkl')
-            elif self._snapshot_mode == 'gap':
+                file_name = osp.join(self._snapshot_dir, "params.pkl")
+            elif self._snapshot_mode == "gap":
                 if itr % self._snapshot_gap == 0:
-                    file_name = osp.join(self._snapshot_dir,
-                                         'itr_%d.pkl' % itr)
-            elif self._snapshot_mode == 'gap_and_last':
+                    file_name = osp.join(self._snapshot_dir, "itr_%d.pkl" % itr)
+            elif self._snapshot_mode == "gap_and_last":
                 if itr % self._snapshot_gap == 0:
-                    file_name = osp.join(self._snapshot_dir,
-                                         'itr_%d.pkl' % itr)
-                file_name_last = osp.join(self._snapshot_dir, 'params.pkl')
-                with open(file_name_last, 'wb') as file:
+                    file_name = osp.join(self._snapshot_dir, "itr_%d.pkl" % itr)
+                file_name_last = osp.join(self._snapshot_dir, "params.pkl")
+                with open(file_name_last, "wb") as file:
                     pickle.dump(params, file)
-            elif self._snapshot_mode == 'none':
+            elif self._snapshot_mode == "none":
                 pass
             else:
-                raise ValueError('Invalid snapshot mode {}'.format(
-                    self._snapshot_mode))
+                raise ValueError("Invalid snapshot mode {}".format(self._snapshot_mode))
 
             if file_name:
-                with open(file_name, 'wb') as file:
+                with open(file_name, "wb") as file:
                     pickle.dump(params, file)

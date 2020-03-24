@@ -1,3 +1,7 @@
-from malib.value_functions.value_function import MLPValueFunction
+from malib.value_functions.value_function import (
+    MLPValueFunction,
+    CommNetValueFunction,
+    BiCNetValueFunction,
+)
 
-__all__ = ['MLPValueFunction']
+# __all__ = ["MLPValueFunction"]

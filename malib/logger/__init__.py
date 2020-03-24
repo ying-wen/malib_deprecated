@@ -15,7 +15,16 @@ tabular = TabularInput()
 snapshotter = Snapshotter()
 
 __all__ = [
-    'Histogram', 'Logger', 'CsvOutput', 'StdOutput', 'TextOutput', 'LogOutput',
-    'Snapshotter', 'TabularInput', 'TensorBoardOutput', 'logger', 'tabular',
-    'snapshotter'
+    "Histogram",
+    "Logger",
+    "CsvOutput",
+    "StdOutput",
+    "TextOutput",
+    "LogOutput",
+    "Snapshotter",
+    "TabularInput",
+    "TensorBoardOutput",
+    "logger",
+    "tabular",
+    "snapshotter",
 ]

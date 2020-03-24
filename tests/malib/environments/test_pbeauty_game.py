@@ -2,8 +2,7 @@ import unittest
 import pytest
 
 from malib.environments import PBeautyGame
-from malib.error import EnvironmentNotFound, RewardTypeNotFound, \
-    WrongActionInputLength
+from malib.error import EnvironmentNotFound, RewardTypeNotFound, WrongActionInputLength
 
 # The number of agent can be arbitrary
 expected_config = [
@@ -14,26 +13,31 @@ expected_config = [
     ("entry", "entry", 46),
 ]
 
+
 def test_create_game():
     game = PBeautyGame(2)
 
+
 def test_create_wrong_name_game():
     with pytest.raises(EnvironmentNotFound) as excinfo:
-        game = PBeautyGame(2, 'abc')
+        game = PBeautyGame(2, "abc")
 
     assert "abc" in str(excinfo.value)
+
 
 def test_create_wrong_name_reward():
     with pytest.raises(RewardTypeNotFound) as excinfo:
-        game = PBeautyGame(2, game_name='pbeauty', reward_type='abc')
+        game = PBeautyGame(2, game_name="pbeauty", reward_type="abc")
 
     assert "abc" in str(excinfo.value)
+
 
 def test_create_wrong_game_name():
     with pytest.raises(EnvironmentNotFound) as excinfo:
-        game = PBeautyGame(2, game_name='abc')
+        game = PBeautyGame(2, game_name="abc")
 
     assert "abc" in str(excinfo.value)
+
 
 @pytest.mark.parametrize("game_name, reward_type, num_agent", expected_config)
 def test_wrong_input_action_length(game_name, reward_type, num_agent):

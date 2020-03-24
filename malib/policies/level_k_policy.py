@@ -17,20 +17,22 @@ LOG_STD_MIN = -20
 
 
 class LevelKPolicy(Policy):
-    def __init__(self,
-                 main_policy,
-                 secondary_policy,
-                 prior_policy,
-                 secondary_prior_policy,
-                 k=2,
-                 k_weights=[1., 1.],
-                 k_sampler=lambda x: np.random.randint(0, x+1, 1)[0],
-                 preprocessor=None,
-                 mu=0, # mean for possion
-                 deterministic=False,
-                 name='level_k_policy',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        main_policy,
+        secondary_policy,
+        prior_policy,
+        secondary_prior_policy,
+        k=2,
+        k_weights=[1.0, 1.0],
+        k_sampler=lambda x: np.random.randint(0, x + 1, 1)[0],
+        preprocessor=None,
+        mu=0,  # mean for possion
+        deterministic=False,
+        name="level_k_policy",
+        *args,
+        **kwargs
+    ):
         self._Serializable__initialize(locals())
 
         self._main_policy = main_policy
@@ -61,11 +63,11 @@ class LevelKPolicy(Policy):
         self._k = was_k
 
     def level_distribution(self, k, mu):
-        _dists = np.array([poisson.pmf(kk, mu) for kk in range(1, k+1)])
+        _dists = np.array([poisson.pmf(kk, mu) for kk in range(1, k + 1)])
         return _dists / np.sum(_dists)
 
     def sample_k(self, k, mu):
-        return np.random.choice(range(1, k+1), 1, p=self.level_distribution(k, mu))[0]
+        return np.random.choice(range(1, k + 1), 1, p=self.level_distribution(k, mu))[0]
 
     def get_weights(self):
         return self._main_policy.get_weights()
@@ -144,7 +146,9 @@ class LevelKPolicy(Policy):
         return all_actions
 
     def log_pis_np(self, conditions, k, all_actions):
-        all_log_pis_np = list(log_pis.numpy() for log_pis in self.log_pis(conditions, k, all_actions))
+        all_log_pis_np = list(
+            log_pis.numpy() for log_pis in self.log_pis(conditions, k, all_actions)
+        )
         return all_log_pis_np
 
     def get_diagnostics(self, conditions):

@@ -1,7 +1,7 @@
 numpy
-tensorflow==2.0.0-rc1
+tensorflow
 # tensorflow-gpu==2.0.0-rc1 # uncomment this line for TF-GPU installation
-tfp-nightly
+tensorflow-probability
 gym
 matplotlib
 tensorboardX
@@ -10,5 +10,5 @@ protobuf
 joblib
 pytest
 Pillow
-gast==0.2.2
+gast
 # git+https://github.com/openai/multiagent-particle-envs.git

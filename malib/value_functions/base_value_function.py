@@ -5,7 +5,6 @@ from malib.core import Serializable
 
 
 class BaseValueFunction(Serializable):
-
     def get_values(self, conditions):
         raise NotImplementedError
 
@@ -44,9 +43,9 @@ class BaseValueFunction(Serializable):
 
     def __getstate__(self):
         state = Serializable.__getstate__(self)
-        state['pickled_weights'] = self.get_weights()
+        state["pickled_weights"] = self.get_weights()
         return state
 
     def __setstate__(self, state):
         Serializable.__setstate__(self, state)
-        self.set_weights(state['pickled_weights'])
+        self.set_weights(state["pickled_weights"])

@@ -31,7 +31,8 @@ class TestEpsilonGreedyStrategy(unittest.TestCase):
             total_timesteps=100,
             max_epsilon=1.0,
             min_epsilon=0.02,
-            decay_ratio=0.1)
+            decay_ratio=0.1,
+        )
 
         self.env.reset()
 
@@ -42,16 +43,13 @@ class TestEpsilonGreedyStrategy(unittest.TestCase):
         assert self.env.action_space.contains(action)
 
         # epsilon decay by 1 step, new epsilon = 1 - 0.98 = 0.902
-        random_rate = np.random.random(
-            100000) < self.epsilon_greedy_strategy._epsilon
+        random_rate = np.random.random(100000) < self.epsilon_greedy_strategy._epsilon
         assert np.isclose([0.902], [sum(random_rate) / 100000], atol=0.01)
 
-        actions = self.epsilon_greedy_strategy.get_actions(
-            0, [obs] * 5, self.policy)
+        actions = self.epsilon_greedy_strategy.get_actions(0, [obs] * 5, self.policy)
 
         # epsilon decay by 6 steps in total, new epsilon = 1 - 6 * 0.98 = 0.412
-        random_rate = np.random.random(
-            100000) < self.epsilon_greedy_strategy._epsilon
+        random_rate = np.random.random(100000) < self.epsilon_greedy_strategy._epsilon
         assert np.isclose([0.412], [sum(random_rate) / 100000], atol=0.01)
 
         for action in actions:

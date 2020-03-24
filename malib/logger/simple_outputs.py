@@ -28,14 +28,14 @@ class StdOutput(LogOutput):
         """Accept str and TabularInput objects."""
         return (str, TabularInput)
 
-    def record(self, data, prefix=''):
+    def record(self, data, prefix=""):
         """Log data to console."""
         if isinstance(data, str):
             out = prefix + data
             if self._with_timestamp:
                 now = datetime.datetime.now(dateutil.tz.tzlocal())
-                timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
-                out = '%s | %s' % (timestamp, out)
+                timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+                out = "%s | %s" % (timestamp, out)
         elif isinstance(data, TabularInput):
             out = str(data)
             data.mark_str()
@@ -56,7 +56,7 @@ class FileOutput(LogOutput, metaclass=abc.ABCMeta):
     :param mode: File open mode ('a', 'w', etc).
     """
 
-    def __init__(self, file_name, mode='w'):
+    def __init__(self, file_name, mode="w"):
         mkdir_p(os.path.dirname(file_name))
         # Open the log file in child class
         self._log_file = open(file_name, mode)
@@ -79,27 +79,27 @@ class TextOutput(FileOutput):
     """
 
     def __init__(self, file_name, with_timestamp=True):
-        super().__init__(file_name, 'a')
+        super().__init__(file_name, "a")
         self._with_timestamp = with_timestamp
-        self._delimiter = ' | '
+        self._delimiter = " | "
 
     @property
     def types_accepted(self):
         """Accept str objects only."""
         return (str, TabularInput)
 
-    def record(self, data, prefix=''):
+    def record(self, data, prefix=""):
         """Log data to text file."""
         if isinstance(data, str):
             out = prefix + data
             if self._with_timestamp:
                 now = datetime.datetime.now(dateutil.tz.tzlocal())
-                timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
-                out = '%s | %s' % (timestamp, out)
+                timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+                out = "%s | %s" % (timestamp, out)
         elif isinstance(data, TabularInput):
             out = str(data)
             data.mark_str()
         else:
             raise ValueError("Unacceptable type.")
 
-        self._log_file.write(out + '\n')
+        self._log_file.write(out + "\n")

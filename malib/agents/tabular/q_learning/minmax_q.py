@@ -11,11 +11,13 @@ import importlib
 
 class MinMaxQAgent(BaseQAgent):
     def __init__(self, id_, action_num, env, opp_action_num):
-        super().__init__('minmax', id_, action_num, env)
+        super().__init__("minmax", id_, action_num, env)
         self.solvers = []
         self.opp_action_num = opp_action_num
         self.pi_history = [deepcopy(self.pi)]
-        self.Q = defaultdict(partial(np.random.rand, self.action_num, self.opp_action_num))
+        self.Q = defaultdict(
+            partial(np.random.rand, self.action_num, self.opp_action_num)
+        )
 
     def done(self, env):
         self.solvers.clear()
@@ -42,20 +44,23 @@ class MinMaxQAgent(BaseQAgent):
                 StationaryAgent.normalize(self.pi[s])
                 self.pi_history.append(deepcopy(self.pi))
             except Exception as e:
-                print('optimization using {} failed: {}'.format(solver, e))
+                print("optimization using {} failed: {}".format(solver, e))
                 continue
-            else: break
+            else:
+                break
 
     def initialize_solvers(self):
         if not self.solvers:
-            for lib in ['gurobipy', 'scipy.optimize', 'pulp']:
-                try: self.solvers.append((lib, importlib.import_module(lib)))
-                except: pass
+            for lib in ["gurobipy", "scipy.optimize", "pulp"]:
+                try:
+                    self.solvers.append((lib, importlib.import_module(lib)))
+                except:
+                    pass
 
     def lp_solve(self, Q, solver, lib):
         ret = None
 
-        if solver == 'scipy.optimize':
+        if solver == "scipy.optimize":
             c = np.append(np.zeros(self.action_num), -1.0)
             A_ub = np.c_[-Q.T, np.ones(self.opp_action_num)]
             b_ub = np.zeros(self.opp_action_num)
@@ -63,30 +68,34 @@ class MinMaxQAgent(BaseQAgent):
             b_eq = np.array([1.0])
             bounds = [(0.0, 1.0) for _ in range(self.action_num)] + [(-np.inf, np.inf)]
             res = lib.linprog(
-                c=c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds)
+                c=c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds
+            )
             ret = res.x[:-1]
-        elif solver == 'gurobipy':
-            m = lib.Model('LP')
-            m.setParam('OutputFlag', 0)
-            m.setParam('LogFile', '')
-            m.setParam('LogToConsole', 0)
-            v = m.addVar(name='v')
+        elif solver == "gurobipy":
+            m = lib.Model("LP")
+            m.setParam("OutputFlag", 0)
+            m.setParam("LogFile", "")
+            m.setParam("LogToConsole", 0)
+            v = m.addVar(name="v")
             pi = {}
             for a in range(self.action_num):
-                pi[a] = m.addVar(lb=0.0, ub=1.0, name='pi_{}'.format(a))
+                pi[a] = m.addVar(lb=0.0, ub=1.0, name="pi_{}".format(a))
             m.update()
             m.setObjective(v, sense=lib.GRB.MAXIMIZE)
             for o in range(self.opp_action_num):
                 m.addConstr(
                     lib.quicksum(pi[a] * Q[a, o] for a in range(self.action_num)) >= v,
-                    name='c_o{}'.format(o))
-            m.addConstr(lib.quicksum(pi[a] for a in range(self.action_num)) == 1, name='c_pi')
+                    name="c_o{}".format(o),
+                )
+            m.addConstr(
+                lib.quicksum(pi[a] for a in range(self.action_num)) == 1, name="c_pi"
+            )
             m.optimize()
             ret = np.array([pi[a].X for a in range(self.action_num)])
-        elif solver == 'pulp':
-            v = lib.LpVariable('v')
-            pi = lib.LpVariable.dicts('pi', list(range(self.action_num)), 0, 1)
-            prob = lib.LpProblem('LP', lib.LpMaximize)
+        elif solver == "pulp":
+            v = lib.LpVariable("v")
+            pi = lib.LpVariable.dicts("pi", list(range(self.action_num)), 0, 1)
+            prob = lib.LpProblem("LP", lib.LpMaximize)
             prob += v
             for o in range(self.opp_action_num):
                 prob += lib.lpSum(pi[a] * Q[a, o] for a in range(self.action_num)) >= v
@@ -95,15 +104,18 @@ class MinMaxQAgent(BaseQAgent):
             ret = np.array([lib.value(pi[a]) for a in range(self.action_num)])
 
         if not (ret >= 0.0).all():
-            raise Exception('{} - negative probability error: {}'.format(solver, ret))
+            raise Exception("{} - negative probability error: {}".format(solver, ret))
 
         return ret
 
 
 class MetaControlAgent(Agent):
     def __init__(self, id_, action_num, env, opp_action_num):
-        super().__init__('metacontrol', id_, action_num, env)
-        self.agents = [QAgent(id_, action_num, env), MinimaxQAgent(id_, action_num, env, opp_action_num)]
+        super().__init__("metacontrol", id_, action_num, env)
+        self.agents = [
+            QAgent(id_, action_num, env),
+            MinimaxQAgent(id_, action_num, env, opp_action_num),
+        ]
         self.n = np.zeros(len(self.agents))
         self.controller = None
 
@@ -124,4 +136,8 @@ class MetaControlAgent(Agent):
             agent.update(s, a, o, r, s2, env)
 
         self.n[self.controller] += 1
-        print('id: {}, n: {} ({}%)'.format(self.id_, self.n, 100.0 * self.n / np.sum(self.n)))
+        print(
+            "id: {}, n: {} ({}%)".format(
+                self.id_, self.n, 100.0 * self.n / np.sum(self.n)
+            )
+        )

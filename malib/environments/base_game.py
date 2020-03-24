@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+
 class BaseGame(ABC):
     """
     Base Interface for Environment/Game.

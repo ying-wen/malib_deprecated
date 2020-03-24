@@ -23,6 +23,6 @@ class SquashBijectorTest(tf.test.TestCase):
 
     def forward_log_det_jacobian(self):
         x = np.zeros((1,))
-        expected = 2. * (np.log(2.) - x - np.log(1.0 + np.exp(x)))
+        expected = 2.0 * (np.log(2.0) - x - np.log(1.0 + np.exp(x)))
         y = self.squash_bijector.inverse(x)
         self.assertEqual(expected, y.numpy())

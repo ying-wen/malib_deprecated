@@ -21,13 +21,12 @@ class DiscreteQfDerivedPolicy(Policy):
         self._qf = qf
 
         self.condition_inputs = [
-            tf.keras.layers.Input(shape=input_shape)
-            for input_shape in input_shapes
+            tf.keras.layers.Input(shape=input_shape) for input_shape in input_shapes
         ]
 
-        conditions = tf.keras.layers.Lambda(
-            lambda x: tf.concat(x, axis=-1)
-        )(self.condition_inputs)
+        conditions = tf.keras.layers.Lambda(lambda x: tf.concat(x, axis=-1))(
+            self.condition_inputs
+        )
 
         if preprocessor is not None:
             conditions = preprocessor(conditions)
@@ -37,7 +36,8 @@ class DiscreteQfDerivedPolicy(Policy):
         self.actions_model = tf.keras.Model(self.condition_inputs, actions)
 
         self.diagnostics_model = tf.keras.Model(
-            self.condition_inputs, (q_vals, actions))
+            self.condition_inputs, (q_vals, actions)
+        )
 
     def get_weights(self):
         return self.actions_model.get_weights()
@@ -64,18 +64,17 @@ class DiscreteQfDerivedPolicy(Policy):
     def get_actions_np(self, conditions):
         return self.actions_model.predict(conditions)
 
-
     def get_diagnostics(self, conditions):
         """Return diagnostic information of the policy.
                 Returns the mean, min, max, and standard deviation of means and
                 covariances.
                 """
-        (q_vals,
-         actions_np) = self.diagnostics_model.predict(conditions)
+        (q_vals, actions_np) = self.diagnostics_model.predict(conditions)
 
-        return OrderedDict({
-            '{}/raw-actions-mean'.format(self._name): np.mean(q_vals),
-            '{}/raw-actions-std'.format(self._name): np.std(q_vals),
-
-            '{}/actions'.format(self._name): np.mean(actions_np),
-        })
+        return OrderedDict(
+            {
+                "{}/raw-actions-mean".format(self._name): np.mean(q_vals),
+                "{}/raw-actions-std".format(self._name): np.std(q_vals),
+                "{}/actions".format(self._name): np.mean(actions_np),
+            }
+        )

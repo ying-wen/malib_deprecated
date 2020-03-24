@@ -15,16 +15,17 @@ class OffPolicyAgent(RLAgent, Serializable):
     """This class implements OffPolicyRLAgents."""
 
     def __init__(
-            self,
-            observation_space,
-            action_space,
-            policy,
-            qf,
-            replay_buffer,
-            train_sequence_length, # for rnn policy
-            name='off_policy_agent',
-            *args,
-            **kwargs):
+        self,
+        observation_space,
+        action_space,
+        policy,
+        qf,
+        replay_buffer,
+        train_sequence_length,  # for rnn policy
+        name="off_policy_agent",
+        *args,
+        **kwargs
+    ):
         self._Serializable__initialize(locals())
         self._observation_space = observation_space
         self._action_space = action_space
@@ -53,7 +54,6 @@ class OffPolicyAgent(RLAgent, Serializable):
         Initialize the evaluation procedure.
         """
         raise NotImplementedError
-
 
     @property
     def action_space(self):
@@ -89,8 +89,8 @@ class OffPolicyAgent(RLAgent, Serializable):
 
     def train(self, batch, weights=None):
         if self.train_sequence_length is not None:
-            if batch['observations'].shape[1] != self.train_sequence_length:
-                raise ValueError('Invalid sequence length in batch.')
+            if batch["observations"].shape[1] != self.train_sequence_length:
+                raise ValueError("Invalid sequence length in batch.")
         loss_info = self._train(batch=batch, weights=weights)
         return loss_info
 
@@ -110,4 +110,3 @@ class OffPolicyAgent(RLAgent, Serializable):
     #     # self._qf = state['pickled_qf']
     #     # self._policy = state['pickled_policy']
     #     # self.set_weights(state['pickled_weights'])
-

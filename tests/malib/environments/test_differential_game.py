@@ -12,14 +12,17 @@ expected_config = [
     ("ma_softq", 2),
 ]
 
+
 def test_create_game():
     game = DifferentialGame("zero_sum", 2)
+
 
 def test_create_wrong_name_game():
     with pytest.raises(EnvironmentNotFound) as excinfo:
         game = DifferentialGame("abc", 2)
 
     assert "abc" in str(excinfo.value)
+
 
 @pytest.mark.parametrize("game_name, real_num_agent", expected_config)
 def test_wrong_num_agent(game_name, real_num_agent):
@@ -28,6 +31,7 @@ def test_wrong_num_agent(game_name, real_num_agent):
 
     assert f"for {game_name} is {real_num_agent}" in str(excinfo.value)
     assert "agent" in str(excinfo.value)
+
 
 @pytest.mark.parametrize("game_name, real_num_agent", expected_config)
 def test_wrong_input_action_length(game_name, real_num_agent):

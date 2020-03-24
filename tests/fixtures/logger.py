@@ -7,9 +7,9 @@ class NullOutput(LogOutput):
     @property
     def types_accepted(self):
         """Accept all output types."""
-        return (object, )
+        return (object,)
 
-    def record(self, data, prefix=''):
+    def record(self, data, prefix=""):
         """Don't do anything."""
         if isinstance(data, TabularInput):
             data.mark_all()

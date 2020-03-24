@@ -12,21 +12,23 @@ from malib.core import Serializable
 
 class GaussianPolicyTest(tf.test.TestCase):
     def setUp(self):
-        self.env = gym.envs.make('MountainCarContinuous-v0')
+        self.env = gym.envs.make("MountainCarContinuous-v0")
         self.hidden_layer_sizes = (128, 128)
         self.policy = GaussianMLPPolicy(
-            input_shapes=(self.env.observation_space.shape, ),
+            input_shapes=(self.env.observation_space.shape,),
             output_shape=self.env.action_space.shape,
             hidden_layer_sizes=self.hidden_layer_sizes,
-            name='Policy'
+            name="Policy",
         )
         self.cond_polcy = GaussianMLPPolicy(
             input_shapes=(
                 self.env.observation_space.shape,
-                self.env.action_space.shape),
+                self.env.action_space.shape,
+            ),
             output_shape=self.env.action_space.shape,
             hidden_layer_sizes=self.hidden_layer_sizes,
-            name='CondPolicy')
+            name="CondPolicy",
+        )
 
     def test_actions_and_log_pis_symbolic(self):
         observation1_np = self.env.reset()
@@ -52,9 +54,9 @@ class GaussianPolicyTest(tf.test.TestCase):
         observation2_np = self.env.step(self.env.action_space.sample())[0]
         action1_np = self.env.action_space.sample()
         action2_np = self.env.action_space.sample()
-        observations_np = np.stack(
-            (observation1_np, observation2_np)).astype(
-            np.float32)
+        observations_np = np.stack((observation1_np, observation2_np)).astype(
+            np.float32
+        )
         actions_np = np.stack((action1_np, action2_np))
         conditions = [observations_np, actions_np]
 
@@ -88,8 +90,8 @@ class GaussianPolicyTest(tf.test.TestCase):
 
     def test_trainable_variables(self):
         self.assertEqual(
-            len(self.policy.trainable_variables),
-            2 * (len(self.hidden_layer_sizes) + 1))
+            len(self.policy.trainable_variables), 2 * (len(self.hidden_layer_sizes) + 1)
+        )
 
     def test_get_diagnostics(self):
         observation1_np = self.env.reset()
@@ -118,15 +120,15 @@ class GaussianPolicyTest(tf.test.TestCase):
     def test_clone_target(self):
         observation1_np = self.env.reset()
         observation2_np = self.env.step(self.env.action_space.sample())[0]
-        observations_np = np.stack(
-            (observation1_np, observation2_np)
-        ).astype(np.float32)
+        observations_np = np.stack((observation1_np, observation2_np)).astype(
+            np.float32
+        )
 
         weights = self.policy.get_weights()
         actions_np = self.policy.get_actions_np([observations_np])
         log_pis_np = self.policy.log_pis_np([observations_np], actions_np)
 
-        target_name = '{}_{}'.format('target', self.policy._name)
+        target_name = "{}_{}".format("target", self.policy._name)
         target_policy = Serializable.clone(self.policy, name=target_name)
 
         weights_2 = target_policy.get_weights()
@@ -138,16 +140,15 @@ class GaussianPolicyTest(tf.test.TestCase):
             np.testing.assert_array_equal(weight.shape, weight_2.shape)
         np.testing.assert_array_equal(log_pis_np.shape, log_pis_np_2.shape)
         np.testing.assert_equal(
-            actions_np.shape,
-            self.policy.get_actions_np(
-                [observations_np]).shape)
+            actions_np.shape, self.policy.get_actions_np([observations_np]).shape
+        )
 
     def test_serialize_deserialize(self):
         observation1_np = self.env.reset()
         observation2_np = self.env.step(self.env.action_space.sample())[0]
-        observations_np = np.stack(
-            (observation1_np, observation2_np)
-        ).astype(np.float32)
+        observations_np = np.stack((observation1_np, observation2_np)).astype(
+            np.float32
+        )
 
         weights = self.policy.get_weights()
         actions_np = self.policy.get_actions_np([observations_np])
@@ -163,9 +164,8 @@ class GaussianPolicyTest(tf.test.TestCase):
             np.testing.assert_array_equal(weight, weight_2)
         np.testing.assert_array_equal(log_pis_np, log_pis_np_2)
         np.testing.assert_equal(
-            actions_np.shape,
-            deserialized.get_actions_np(
-                [observations_np]).shape)
+            actions_np.shape, deserialized.get_actions_np([observations_np]).shape
+        )
 
     def test_latent_smoothing(self):
         observation_np = self.env.reset()
@@ -173,24 +173,25 @@ class GaussianPolicyTest(tf.test.TestCase):
             input_shapes=(self.env.observation_space.shape,),
             output_shape=self.env.action_space.shape,
             hidden_layer_sizes=self.hidden_layer_sizes,
-            smoothing_coefficient=0.5)
+            smoothing_coefficient=0.5,
+        )
 
         np.testing.assert_equal(smoothed_policy._smoothing_x, 0.0)
         self.assertEqual(smoothed_policy._smoothing_alpha, 0.5)
         self.assertEqual(
             smoothed_policy._smoothing_beta,
             np.sqrt((1.0 - np.power(smoothed_policy._smoothing_alpha, 2.0)))
-            / (1.0 - smoothed_policy._smoothing_alpha))
+            / (1.0 - smoothed_policy._smoothing_alpha),
+        )
 
         smoothing_x_previous = smoothed_policy._smoothing_x
         for i in range(5):
-            action_np = smoothed_policy.actions_np([
-                observation_np[None, :]])[0]
+            action_np = smoothed_policy.actions_np([observation_np[None, :]])[0]
             observation_np = self.env.step(action_np)[0]
 
-            self.assertFalse(np.all(np.equal(
-                smoothing_x_previous,
-                smoothed_policy._smoothing_x)))
+            self.assertFalse(
+                np.all(np.equal(smoothing_x_previous, smoothed_policy._smoothing_x))
+            )
             smoothing_x_previous = smoothed_policy._smoothing_x
 
         smoothed_policy.reset()
@@ -198,5 +199,5 @@ class GaussianPolicyTest(tf.test.TestCase):
         np.testing.assert_equal(smoothed_policy._smoothing_x, 0.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tf.test.main()

@@ -35,8 +35,7 @@ def adaptive_isotropic_gaussian_kernel(xs, ys, h_min=1e-3):
     diff = tf.expand_dims(xs, -2) - tf.expand_dims(ys, -3)
     # ... x Kx x Ky x D
 
-
-    dist_sq = tf.reduce_sum(input_tensor=diff**2, axis=-1, keepdims=False)
+    dist_sq = tf.reduce_sum(input_tensor=diff ** 2, axis=-1, keepdims=False)
     # ... x Kx x Ky
 
     # Get median.
@@ -44,7 +43,8 @@ def adaptive_isotropic_gaussian_kernel(xs, ys, h_min=1e-3):
     values, _ = tf.nn.top_k(
         input=tf.reshape(dist_sq, input_shape),
         k=(Kx * Ky // 2 + 1),  # This is exactly true only if Kx*Ky is odd.
-        sorted=True)  # ... x floor(Ks*Kd/2)
+        sorted=True,
+    )  # ... x floor(Ks*Kd/2)
 
     medians_sq = values[..., -1]  # ... (shape) (last element is the median)
 

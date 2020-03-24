@@ -19,7 +19,7 @@ AWS_KEY_NAME = "malib_eu"
 
 AWS_SPOT = True
 
-AWS_SPOT_PRICE = '10.0'
+AWS_SPOT_PRICE = "10.0"
 
 AWS_IAM_INSTANCE_PROFILE_NAME = "malib"
 
@@ -30,8 +30,13 @@ AWS_REGION_NAME = "eu-west-1a"
 AWS_CODE_SYNC_S3_PATH = "<insert aws s3 bucket url for code>e"
 
 CODE_SYNC_IGNORES = [
-    "*.git/*", "*data/*", "*src/*", "*.pods/*", "*tests/*", "*examples/*",
-    "docs/*"
+    "*.git/*",
+    "*data/*",
+    "*src/*",
+    "*.pods/*",
+    "*tests/*",
+    "*examples/*",
+    "docs/*",
 ]
 
 LOCAL_CODE_DIR = "<insert local code dir>"

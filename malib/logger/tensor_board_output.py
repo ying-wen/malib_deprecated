@@ -42,7 +42,7 @@ class TensorBoardOutput(LogOutput):
         """Return the types that the logger may pass to this output."""
         return (TabularInput, tf.Graph)
 
-    def record(self, data, prefix=''):
+    def record(self, data, prefix=""):
         """
         Add data to tensorboard summary.
 
@@ -50,12 +50,11 @@ class TensorBoardOutput(LogOutput):
         :param prefix(str): A prefix placed before a log entry in text outputs.
         """
         if isinstance(data, TabularInput):
-            self._waiting_for_dump.append(
-                functools.partial(self._record_tabular, data))
+            self._waiting_for_dump.append(functools.partial(self._record_tabular, data))
         elif isinstance(data, tf.Graph):
             self._record_graph(data)
         else:
-            raise ValueError('Unacceptable type.')
+            raise ValueError("Unacceptable type.")
 
     def _record_tabular(self, data, step):
         for key, value in data.as_dict.items():
@@ -68,18 +67,16 @@ class TensorBoardOutput(LogOutput):
         elif isinstance(value, plt.Figure):
             self._writer.add_figure(key, value, step)
         elif isinstance(value, scipy.stats._distn_infrastructure.rv_frozen):
-            shape = (self._histogram_samples, ) + value.mean().shape
+            shape = (self._histogram_samples,) + value.mean().shape
             self._writer.add_histogram(key, value.rvs(shape), step)
         elif isinstance(value, scipy.stats._multivariate.multi_rv_frozen):
-            self._writer.add_histogram(key, value.rvs(self._histogram_samples),
-                                       step)
+            self._writer.add_histogram(key, value.rvs(self._histogram_samples), step)
         elif isinstance(value, Histogram):
             self._writer.add_histogram(key, value, step)
 
     def _record_graph(self, graph):
         graph_def = graph.as_graph_def(add_shapes=True)
-        event = tbx.proto.event_pb2.Event(
-            graph_def=graph_def.SerializeToString())
+        event = tbx.proto.event_pb2.Event(graph_def=graph_def.SerializeToString())
         self._writer.file_writer.add_event(event)
 
     def dump(self, step=None):

@@ -25,16 +25,18 @@ class SingleBoatGame(BaseGame):
         self.stoch = 0
         self.t = 0
 
-        obs_lows = np.array([0, 0, -1. * np.pi / 3., 2., -1.])
-        obs_highs = np.array([50, 100, np.pi / 3., 5., 1.])
+        obs_lows = np.array([0, 0, -1.0 * np.pi / 3.0, 2.0, -1.0])
+        obs_highs = np.array([50, 100, np.pi / 3.0, 5.0, 1.0])
         self.observation_spaces = MASpace(tuple([Box(low=obs_lows, high=obs_highs)]))
-        self.action_spaces = MASpace(tuple([Box(low=-1., high=1., shape=(2,))]))
+        self.action_spaces = MASpace(tuple([Box(low=-1.0, high=1.0, shape=(2,))]))
 
         self.env_specs = MAEnvSpec(self.observation_spaces, self.action_spaces)
         self.avs = [0] * 10
         self.aws = [0] * 10
 
-        self.rewards = list()  # a list that records rewards obtained in current episode, in sequential order.
+        self.rewards = (
+            list()
+        )  # a list that records rewards obtained in current episode, in sequential order.
 
     @property
     def observation_space(self):
@@ -79,15 +81,25 @@ class SingleBoatGame(BaseGame):
         av, aw = action
         av = float(av)
         # av (-1, 2), aw (-1, 1)
-        av = av * 1.5 + 0.5  # rescale action to make it (-1, 1) from outside. Convenient for Gaussian policy Squash.
+        av = (
+            av * 1.5 + 0.5
+        )  # rescale action to make it (-1, 1) from outside. Convenient for Gaussian policy Squash.
         aw = float(aw)
         self.stoch = self.get_stoch()
-        self.x = self.find_nearest(list(range(51)), self.x + self.v * np.cos(self.theta))
-        self.y = self.find_nearest(list(range(101)), self.y + self.v * np.sin(self.theta) + self.stoch)
-        self.theta = self.find_nearest([(-np.pi / 3 + i * 2 * np.pi / 30) for i in range(11)], self.theta + self.w)
+        self.x = self.find_nearest(
+            list(range(51)), self.x + self.v * np.cos(self.theta)
+        )
+        self.y = self.find_nearest(
+            list(range(101)), self.y + self.v * np.sin(self.theta) + self.stoch
+        )
+        self.theta = self.find_nearest(
+            [(-np.pi / 3 + i * 2 * np.pi / 30) for i in range(11)], self.theta + self.w
+        )
         self.v = self.find_nearest([(2 + i * 3 / 10) for i in range(11)], self.v + av)
         self.w = self.find_nearest([(-1 + i * 2 / 10) for i in range(11)], self.w + aw)
-        reward = self.calculate_reward()  # make reward minus to be compatible for maximum entropy RL.
+        reward = (
+            self.calculate_reward()
+        )  # make reward minus to be compatible for maximum entropy RL.
         done = False
         pos = (int(self.x), int(self.y))
 
@@ -104,11 +116,14 @@ class SingleBoatGame(BaseGame):
 
         # return a tuple of (next_obs, rewards, dones, info (timestep)
         # remain np array format in order to maintain compatibility with replay_buffer.
-        return (np.array([self.x, self.y, float(self.theta), float(self.v), float(self.w)]),  # next_observation
-                np.array([reward]),  # reward
-                np.array([done]),  # done
-                {"time_step": self.t}  # info
-                )
+        return (
+            np.array(
+                [self.x, self.y, float(self.theta), float(self.v), float(self.w)]
+            ),  # next_observation
+            np.array([reward]),  # reward
+            np.array([done]),  # done
+            {"time_step": self.t},  # info
+        )
 
     def reset(self):
         # print("self.t when reset was: ", self.t)

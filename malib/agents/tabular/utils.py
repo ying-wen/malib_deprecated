@@ -9,15 +9,23 @@ EPS = 1e-6
 
 # TODO: ADD esp and bolzmann policy here
 
+
 def U(payoff):
     return payoff[(0, 0)] - payoff[(0, 1)] - payoff[(1, 0)] + payoff[(1, 1)]
 
+
 def V(alpha, beta, payoff):
     u = U(payoff)
-    return alpha * beta * u + alpha * (payoff[(0, 1)] - payoff[(1, 1)]) + beta * (payoff[(1, 0)] - payoff[(1, 1)]) + payoff[(1, 1)]
+    return (
+        alpha * beta * u
+        + alpha * (payoff[(0, 1)] - payoff[(1, 1)])
+        + beta * (payoff[(1, 0)] - payoff[(1, 1)])
+        + payoff[(1, 1)]
+    )
+
 
 def projection(PI, threshold=0):
-    #print(PI)
+    # print(PI)
     # 1- the unit vector is perpendicular to the 1 surface. Using this along with the
     # 	passed point P0 we get a parametric line equation:
     #   P = P0 + t * I, where t is the parameter and I is the unit vector.
@@ -25,7 +33,7 @@ def projection(PI, threshold=0):
     # 	hence the point of projection, P' = P0 + ( (1 - \sum P0) / n ) I
     # * compute sum
     t = sum(PI)
-    #print(t)
+    # print(t)
     # * compute t
     t = (1.0 - t) / len(PI)
 
@@ -34,8 +42,8 @@ def projection(PI, threshold=0):
         PI[i] += t
 
     # 2- if forall p in P', p >=0 (and consequently <=1), we found the point.
-    #	other wise, pick a negative dimension d, make it equal zero while decrementing
-    #	other non zero dimensions. repeat until no negatives remain.
+    # 	other wise, pick a negative dimension d, make it equal zero while decrementing
+    # 	other non zero dimensions. repeat until no negatives remain.
     done = False
     while not done:
         # comulate negative dimensions
@@ -45,7 +53,7 @@ def projection(PI, threshold=0):
         excess = 0
         for i in range(len(PI)):
             if PI[i] < threshold:
-                excess += threshold-PI[i]
+                excess += threshold - PI[i]
                 PI[i] = threshold
             elif PI[i] > threshold:
                 n += 1
@@ -58,23 +66,27 @@ def projection(PI, threshold=0):
             for i in range(len(PI)):
                 if PI[i] > threshold:
                     PI[i] -= excess / n
-    #print(PI)
+    # print(PI)
     return PI
 
 
 def makehash():
     import collections
+
     return collections.defaultdict(makehash)
 
 
 def sigmoid(x, derivative=False):
-  return x * (1 - x) if derivative else np.clip(1./(1.+np.exp(-x)),EPS, 1-EPS)
+    return (
+        x * (1 - x) if derivative else np.clip(1.0 / (1.0 + np.exp(-x)), EPS, 1 - EPS)
+    )
 
 
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum(axis=0)
+
 
 def chain_files(file_names):
     for file_name in file_names:
@@ -101,16 +113,18 @@ def pv(*args, **kwargs):
         frame = record[0]
         val = eval(name, frame.f_globals, frame.f_locals)
 
-        prefix = kwargs['prefix'] if 'prefix' in kwargs else ''
-        iostream = sys.stdout if 'stdout' in kwargs and kwargs['stdout'] \
-            else sys.stderr
+        prefix = kwargs["prefix"] if "prefix" in kwargs else ""
+        iostream = sys.stdout if "stdout" in kwargs and kwargs["stdout"] else sys.stderr
 
-        print('%s%s: %s' % (prefix, name, pprint.pformat(val)), file=iostream)
+        print("%s%s: %s" % (prefix, name, pprint.pformat(val)), file=iostream)
 
 
 def weighted_mean(samples, weights):
-    return sum(x * w for x, w in zip(samples, weights)) / sum(weights) \
-        if sum(weights) > 0.0 else 0.0
+    return (
+        sum(x * w for x, w in zip(samples, weights)) / sum(weights)
+        if sum(weights) > 0.0
+        else 0.0
+    )
 
 
 def mean(samples):
@@ -122,7 +136,7 @@ def flatten(x):
 
 
 def forward(*args):
-    print('\t'.join(str(i) for i in args))
+    print("\t".join(str(i) for i in args))
 
 
 def random_seed(seed):
@@ -136,6 +150,7 @@ def random_seed(seed):
 def minmax(low, x, high):
     return min(max(low, x), high)
 
+
 def timeit(func):
     import functools
 
@@ -146,62 +161,76 @@ def timeit(func):
         startTime = time.time()
         func(*args, **kwargs)
         elapsedTime = time.time() - startTime
-        print('function [{}] finished in {} s'.format(
-            func.__name__, elapsedTime))
+        print("function [{}] finished in {} s".format(func.__name__, elapsedTime))
+
     return newfunc
 
 
-def plot_dynamics(history_pi_0, history_pi_1, pi_alpha_gradient_history, pi_beta_gradient_history, title=''):
-    cmap = plt.get_cmap('viridis')
+def plot_dynamics(
+    history_pi_0,
+    history_pi_1,
+    pi_alpha_gradient_history,
+    pi_beta_gradient_history,
+    title="",
+):
+    cmap = plt.get_cmap("viridis")
     colors = range(len(history_pi_1))
     fig = plt.figure(figsize=(6, 5))
     ax = fig.add_subplot(111)
 
     scatter = ax.scatter(history_pi_0, history_pi_1, c=colors, s=1)
-    ax.scatter(0.5, 0.5, c='r', s=10., marker='*')
+    ax.scatter(0.5, 0.5, c="r", s=10.0, marker="*")
     colorbar = fig.colorbar(scatter, ax=ax)
-    colorbar.set_label('Iterations', rotation=270, fontsize=FONTSIZE)
+    colorbar.set_label("Iterations", rotation=270, fontsize=FONTSIZE)
 
     skip = slice(0, len(history_pi_0), 5)
-    ax.quiver(history_pi_0[skip],
-              history_pi_1[skip],
-              pi_alpha_gradient_history[skip],
-              pi_beta_gradient_history[skip],
-              units='xy', scale=10., zorder=3, color='blue',
-              width=0.007, headwidth=3., headlength=4.)
+    ax.quiver(
+        history_pi_0[skip],
+        history_pi_1[skip],
+        pi_alpha_gradient_history[skip],
+        pi_beta_gradient_history[skip],
+        units="xy",
+        scale=10.0,
+        zorder=3,
+        color="blue",
+        width=0.007,
+        headwidth=3.0,
+        headlength=4.0,
+    )
 
     ax.set_ylabel("Policy of Player 2", fontsize=FONTSIZE)
     ax.set_xlabel("Policy of Player 1", fontsize=FONTSIZE)
     ax.set_ylim(0, 1)
     ax.set_xlim(0, 1)
-    ax.set_xticklabels(map(str, np.arange(0, 11, 2) / 10), fontsize=FONTSIZE-6)
-    ax.set_yticklabels(map(str, np.arange(0, 11, 2) / 10), fontsize=FONTSIZE-6)
-    ax.set_title(title, fontsize=FONTSIZE+8)
+    ax.set_xticklabels(map(str, np.arange(0, 11, 2) / 10), fontsize=FONTSIZE - 6)
+    ax.set_yticklabels(map(str, np.arange(0, 11, 2) / 10), fontsize=FONTSIZE - 6)
+    ax.set_title(title, fontsize=FONTSIZE + 8)
     plt.tight_layout()
-    plt.savefig('{}.pdf'.format(title))
+    plt.savefig("{}.pdf".format(title))
     plt.show()
 
 
-def plot_Q(data, row_labels, col_labels, title, ax=None,
-          cbar_kw={}, cbarlabel="", **kwargs):
+def plot_Q(
+    data, row_labels, col_labels, title, ax=None, cbar_kw={}, cbarlabel="", **kwargs
+):
     fig = plt.figure(figsize=(6.5, 5))
     ax = fig.add_subplot(111)
 
-    im, cbar = heatmap(data, row_labels, col_labels, ax=ax,
-                       cmap="YlGn", cbarlabel="Q Values")
+    im, cbar = heatmap(
+        data, row_labels, col_labels, ax=ax, cmap="YlGn", cbarlabel="Q Values"
+    )
     texts = annotate_heatmap(im, valfmt="{x:.1f} t")
     # print(data)
     ax.set_title(title, pad=50)
     ax.xaxis.set_label_position("top")
-    ax.set_xlabel('Alpha')
-    ax.set_ylabel('Beta')
+    ax.set_xlabel("Alpha")
+    ax.set_ylabel("Beta")
     fig.tight_layout()
-    plt.savefig('{}.pdf'.format(title), bbox_inches='tight', format='pdf')
+    plt.savefig("{}.pdf".format(title), bbox_inches="tight", format="pdf")
     plt.show()
 
 
-def heatmap(data, row_labels, col_labels, ax=None,
-            cbar_kw={}, cbarlabel="", **kwargs):
+def heatmap(data, row_labels, col_labels, ax=None, cbar_kw={}, cbarlabel="", **kwargs):
     """
     Create a heatmap from a numpy array and two lists of labels.
 
@@ -239,28 +268,31 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.set_yticklabels(row_labels)
 
     # Let the horizontal axes labeling appear on top.
-    ax.tick_params(top=True, bottom=False,
-                   labeltop=True, labelbottom=False)
+    ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
 
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
-             rotation_mode="anchor")
+    plt.setp(ax.get_xticklabels(), rotation=-30, ha="right", rotation_mode="anchor")
 
     # Turn spines off and create white grid.
     for edge, spine in ax.spines.items():
         spine.set_visible(False)
 
-    ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
-    ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
-    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    ax.set_xticks(np.arange(data.shape[1] + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(data.shape[0] + 1) - 0.5, minor=True)
+    ax.grid(which="minor", color="w", linestyle="-", linewidth=3)
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
 
 
-def annotate_heatmap(im, data=None, valfmt="{x:.1f}",
-                     textcolors=["black", "white"],
-                     threshold=None, **textkw):
+def annotate_heatmap(
+    im,
+    data=None,
+    valfmt="{x:.1f}",
+    textcolors=["black", "white"],
+    threshold=None,
+    **textkw
+):
     """
     A function to annotate a heatmap.
 
@@ -288,12 +320,11 @@ def annotate_heatmap(im, data=None, valfmt="{x:.1f}",
     if threshold is not None:
         threshold = im.norm(threshold)
     else:
-        threshold = im.norm(data.max())/2.
+        threshold = im.norm(data.max()) / 2.0
 
     # Set default alignment to center, but allow it to be
     # overwritten by textkw.
-    kw = dict(horizontalalignment="center",
-              verticalalignment="center")
+    kw = dict(horizontalalignment="center", verticalalignment="center")
     kw.update(textkw)
 
     # Get the formatter in case a string is supplied

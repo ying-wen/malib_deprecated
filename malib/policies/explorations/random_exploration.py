@@ -5,7 +5,7 @@ from malib.policies.explorations.base_exploration import ExplorationBase
 
 
 class RandomExploration(ExplorationBase):
-    def __init__(self,action_space):
+    def __init__(self, action_space):
         self._action_space = action_space
 
     def get_action(self, t, observation, policy, **kwargs):

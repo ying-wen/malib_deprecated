@@ -4,7 +4,10 @@ from malib.agents.ddpg.ddpg import DDPGAgent
 from malib.agents.ddpg.maddpg import MADDPGAgent
 from malib.agents.ddpg.ddpg_om import DDPGOMAgent
 from malib.agents.ddpg.ddpg_tom import DDPGToMAgent
+from malib.agents.ddpg.mfac import MFACAgent
 from malib.agents.rommeo.rommeo import ROMMEOAgent
+from malib.agents.fcl.fcl import FullyCentralizedAgent
+
 # from malib.agents.rommeo.rommeo_cheat import CheatROMMEOAgent
 # from malib.agents.rommeo.rommeo_cheat_stable import CheatStableROMMEOAgent
 # from malib.agents.rommeo.rommeo_fake import FakeROMMEOAgent
@@ -14,21 +17,110 @@ from malib.agents.sac.sac import SACAgent
 from malib.agents.gr2.pr2 import PR2Agent
 from malib.agents.gr2.pr2_soft import PR2SoftAgent
 from malib.agents.gr2.pr2k import PR2KSoftAgent
-from malib.policies import DeterministicMLPPolicy, GaussianMLPPolicy, RelaxedSoftmaxMLPPolicy
-from malib.value_functions import MLPValueFunction
+from malib.policies import (
+    DeterministicMLPPolicy,
+    GaussianMLPPolicy,
+    RelaxedSoftmaxMLPPolicy,
+)
+from malib.value_functions import (
+    MLPValueFunction,
+    CommNetValueFunction,
+    BiCNetValueFunction,
+)
 from malib.replay_buffers import IndexedReplayBuffer
 from malib.replay_buffers import IndexedRolloutReplayBuffer
 from malib.policies.explorations.ou_exploration import OUExploration
+
 # from examples.third_party.nn import GaussianPolicy
 
 
-def get_ddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type='deter'):
+def get_bicnet_agent(
+    env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type="deter"
+):
     observation_space = env.env_specs.observation_space[agent_id]
+    n = env.env_specs.agent_num
     action_space = env.env_specs.action_space[agent_id]
-    if policy_type == 'deter':
+    if policy_type == "deter":
         policy_fn = DeterministicMLPPolicy
         exploration_strategy = OUExploration(action_space)
-    elif policy_type == 'gumble':
+    elif policy_type == "gumble":
+        policy_fn = RelaxedSoftmaxMLPPolicy
+        exploration_strategy = None
+    return FullyCentralizedAgent(
+        env_specs=env.env_specs,
+        policy=policy_fn(
+            input_shapes=((n,) + observation_space.shape,),
+            output_shape=action_space.shape,
+            hidden_layer_sizes=hidden_layer_sizes,
+            name="policy_agent_{}".format(agent_id),
+        ),
+        qf=BiCNetValueFunction(
+            input_shapes=((n,) + observation_space.shape, (n,) + action_space.shape),
+            output_shape=(1,),
+            hidden_layer_sizes=hidden_layer_sizes,
+            name="qf_agent_{}".format(agent_id),
+        ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=n * observation_space.shape[0],
+            action_dim=n * action_space.shape[0],
+            reward_dim=n,
+            terminal_dim=n,
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
+        exploration_strategy=exploration_strategy,
+        gradient_clipping=10.0,
+        agent_id=agent_id,
+    )
+
+
+def get_commnet_agent(
+    env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type="deter"
+):
+    observation_space = env.env_specs.observation_space[agent_id]
+    n = env.env_specs.agent_num
+    action_space = env.env_specs.action_space[agent_id]
+    if policy_type == "deter":
+        policy_fn = DeterministicMLPPolicy
+        exploration_strategy = OUExploration(action_space)
+    elif policy_type == "gumble":
+        policy_fn = RelaxedSoftmaxMLPPolicy
+        exploration_strategy = None
+    return FullyCentralizedAgent(
+        env_specs=env.env_specs,
+        policy=policy_fn(
+            input_shapes=((n,) + observation_space.shape,),
+            output_shape=action_space.shape,
+            hidden_layer_sizes=hidden_layer_sizes,
+            name="policy_agent_{}".format(agent_id),
+        ),
+        qf=CommNetValueFunction(
+            input_shapes=((n,) + observation_space.shape, (n,) + action_space.shape),
+            output_shape=(1,),
+            hidden_layer_sizes=hidden_layer_sizes,
+            name="qf_agent_{}".format(agent_id),
+        ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=n * observation_space.shape[0],
+            action_dim=n * action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+            reward_dim=n,
+            terminal_dim=n,
+        ),
+        exploration_strategy=exploration_strategy,
+        gradient_clipping=10.0,
+        agent_id=agent_id,
+    )
+
+
+def get_ddpg_agent(
+    env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type="deter"
+):
+    observation_space = env.env_specs.observation_space[agent_id]
+    action_space = env.env_specs.action_space[agent_id]
+    if policy_type == "deter":
+        policy_fn = DeterministicMLPPolicy
+        exploration_strategy = OUExploration(action_space)
+    elif policy_type == "gumble":
         policy_fn = RelaxedSoftmaxMLPPolicy
         exploration_strategy = None
     return DDPGAgent(
@@ -37,74 +129,87 @@ def get_ddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, po
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
             input_shapes=(observation_space.shape, action_space.shape),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          max_replay_buffer_size=max_replay_buffer_size
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
         exploration_strategy=exploration_strategy,
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )
 
 
-def get_sac_agent(env, hidden_layer_sizes,
-                  max_replay_buffer_size, policy_type='gaussian'):
+def get_sac_agent(
+    env, hidden_layer_sizes, max_replay_buffer_size, policy_type="gaussian"
+):
     """
     SAC agent for single player learning.
     """
     observation_space = env.env_specs.observation_space[0]
     action_space = env.env_specs.action_space[0]
     env_specs = env.env_specs
-    if policy_type == 'gaussian':
+    if policy_type == "gaussian":
         policy_fn = GaussianMLPPolicy
-    elif policy_type == 'gumble':
+    elif policy_type == "gumble":
         policy_fn = RelaxedSoftmaxMLPPolicy
-
+    # print('observation_space.shape', observation_space.shape)
     return SACAgent(
         env_specs=env_specs,
         policy=policy_fn(
-            input_shapes=observation_space.shape,
+            input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='{}_policy'.format(policy_type),
+            name="{}_policy".format(policy_type),
         ),
-        qfs=[MLPValueFunction(
-            input_shapes=(observation_space.shape, action_space.shape),
-            output_shape=(1,),
-            hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_{}'.format(qf_id)
-        )
-            for qf_id in range(2)],
+        qfs=[
+            MLPValueFunction(
+                input_shapes=(observation_space.shape, action_space.shape),
+                output_shape=(1,),
+                hidden_layer_sizes=hidden_layer_sizes,
+                name="qf_{}".format(qf_id),
+            )
+            for qf_id in range(2)
+        ],
         vf=MLPValueFunction(
             input_shapes=(observation_space.shape,),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='vf'
+            name="vf",
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          max_replay_buffer_size=max_replay_buffer_size,
-                                          )
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
     )
 
 
-
-
-def get_rommeo_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type = 'gaussian', uniform=False, custom_b=False, bi=1., bj=1.):
+def get_rommeo_agent(
+    env,
+    agent_id,
+    hidden_layer_sizes,
+    max_replay_buffer_size,
+    policy_type="gaussian",
+    uniform=False,
+    custom_b=False,
+    bi=1.0,
+    bj=1.0,
+):
     observation_space = env.env_specs.observation_space[agent_id]
     action_space = env.env_specs.action_space[agent_id]
     opponent_action_shape = (env.env_specs.action_space.opponent_flat_dim(agent_id),)
-    if policy_type == 'gaussian':
+    if policy_type == "gaussian":
         policy_fn = GaussianMLPPolicy
-    elif policy_type == 'gumble':
+    elif policy_type == "gumble":
         policy_fn = RelaxedSoftmaxMLPPolicy
     return ROMMEOAgent(
         env_specs=env.env_specs,
@@ -112,44 +217,54 @@ def get_rommeo_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, 
             input_shapes=(observation_space.shape, opponent_action_shape),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id),
+            name="policy_agent_{}".format(agent_id),
             repara=True,
             # smoothing_coefficient=0.5
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, action_space.shape, opponent_action_shape),
+            input_shapes=(
+                observation_space.shape,
+                action_space.shape,
+                opponent_action_shape,
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          max_replay_buffer_size=max_replay_buffer_size,
-                                          opponent_action_dim=opponent_action_shape[0],
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+            opponent_action_dim=opponent_action_shape[0],
+        ),
         opponent_policy=policy_fn(
             input_shapes=(observation_space.shape,),
             output_shape=opponent_action_shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_policy_agent_{}'.format(agent_id),
+            name="opponent_policy_agent_{}".format(agent_id),
             repara=True,
         ),
         gradient_clipping=10,
         agent_id=agent_id,
-        name='ROMMEO_{}'.format(agent_id),
-        uniform=uniform, custom_b=custom_b, bi=bi, bj=bj
+        name="ROMMEO_{}".format(agent_id),
+        uniform=uniform,
+        custom_b=custom_b,
+        bi=bi,
+        bj=bj,
     )
 
 
-def get_pr2_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type ='deter'):
+def get_pr2_agent(
+    env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type="deter"
+):
     observation_space = env.env_specs.observation_space[agent_id]
     action_space = env.env_specs.action_space[agent_id]
     opponent_action_shape = (env.env_specs.action_space.opponent_flat_dim(agent_id),)
-    print(opponent_action_shape, 'opponent_action_shape')
-    if policy_type == 'dete':
+    print(opponent_action_shape, "opponent_action_shape")
+    if policy_type == "dete":
         policy_fn = DeterministicMLPPolicy
         exploration_strategy = OUExploration(action_space)
-    elif policy_type == 'gumble':
+    elif policy_type == "gumble":
         policy_fn = RelaxedSoftmaxMLPPolicy
         exploration_strategy = None
     return PR2Agent(
@@ -158,44 +273,51 @@ def get_pr2_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, pol
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, action_space.shape, opponent_action_shape),
+            input_shapes=(
+                observation_space.shape,
+                action_space.shape,
+                opponent_action_shape,
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
         ind_qf=MLPValueFunction(
             input_shapes=(observation_space.shape, action_space.shape),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='ind_qf_agent_{}'.format(agent_id)
+            name="ind_qf_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          max_replay_buffer_size=max_replay_buffer_size,
-                                          opponent_action_dim=opponent_action_shape[0],
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+            opponent_action_dim=opponent_action_shape[0],
+        ),
         opponent_policy=policy_fn(
             input_shapes=(observation_space.shape, action_space.shape),
             output_shape=opponent_action_shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_policy_agent_{}'.format(agent_id)
+            name="opponent_policy_agent_{}".format(agent_id),
         ),
         exploration_strategy=exploration_strategy,
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )
 
 
-def get_pr2_soft_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type = 'gaussian'):
+def get_pr2_soft_agent(
+    env, agent_id, hidden_layer_sizes, max_replay_buffer_size, policy_type="gaussian"
+):
     observation_space = env.env_specs.observation_space[agent_id]
     action_space = env.env_specs.action_space[agent_id]
     opponent_action_shape = (env.env_specs.action_space.opponent_flat_dim(agent_id),)
-    if policy_type == 'gaussian':
+    if policy_type == "gaussian":
         policy_fn = GaussianMLPPolicy
-    elif policy_type == 'gumble':
+    elif policy_type == "gumble":
         policy_fn = RelaxedSoftmaxMLPPolicy
     return PR2SoftAgent(
         env_specs=env.env_specs,
@@ -203,75 +325,87 @@ def get_pr2_soft_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, action_space.shape, opponent_action_shape),
+            input_shapes=(
+                observation_space.shape,
+                action_space.shape,
+                opponent_action_shape,
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          max_replay_buffer_size=max_replay_buffer_size,
-                                          opponent_action_dim=opponent_action_shape[0],
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+            opponent_action_dim=opponent_action_shape[0],
+        ),
         opponent_policy=policy_fn(
             input_shapes=(observation_space.shape, action_space.shape),
             output_shape=opponent_action_shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_policy_agent_{}'.format(agent_id)
+            name="opponent_policy_agent_{}".format(agent_id),
         ),
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )
 
 
-def get_pr2k_soft_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size, k=2, mu=0):
+def get_pr2k_soft_agent(
+    env, agent_id, hidden_layer_sizes, max_replay_buffer_size, k=2, mu=0
+):
     observation_space = env.env_specs.observation_space[agent_id]
     action_space = env.env_specs.action_space[agent_id]
     opponent_action_shape = (env.env_specs.action_space.opponent_flat_dim(agent_id),)
-    print(opponent_action_shape, 'opponent_action_shape')
+    print(opponent_action_shape, "opponent_action_shape")
     return PR2KSoftAgent(
         env_specs=env.env_specs,
         main_policy=GaussianMLPPolicy(
             input_shapes=(observation_space.shape, opponent_action_shape),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         opponent_policy=GaussianMLPPolicy(
             input_shapes=(observation_space.shape, action_space.shape),
             output_shape=opponent_action_shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_policy_agent_{}'.format(agent_id)
+            name="opponent_policy_agent_{}".format(agent_id),
         ),
         prior_policy=GaussianMLPPolicy(
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='prior_policy_agent_{}'.format(agent_id)
+            name="prior_policy_agent_{}".format(agent_id),
         ),
         opponent_prior_policy=GaussianMLPPolicy(
             input_shapes=(observation_space.shape,),
             output_shape=opponent_action_shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_prior_policy_agent_{}'.format(agent_id)
+            name="opponent_prior_policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, action_space.shape, opponent_action_shape),
+            input_shapes=(
+                observation_space.shape,
+                action_space.shape,
+                opponent_action_shape,
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          max_replay_buffer_size=max_replay_buffer_size,
-                                          opponent_action_dim=opponent_action_shape[0],
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            max_replay_buffer_size=max_replay_buffer_size,
+            opponent_action_dim=opponent_action_shape[0],
+        ),
         k=k,
         mu=mu,
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )
 
@@ -285,21 +419,54 @@ def get_maddpg_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size):
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, (env.env_specs.action_space.flat_dim,)),
+            input_shapes=(
+                observation_space.shape,
+                (env.env_specs.action_space.flat_dim,),
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
-                                          max_replay_buffer_size=max_replay_buffer_size
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
         exploration_strategy=OUExploration(action_space),
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
+        agent_id=agent_id,
+    )
+
+
+def get_mfac_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size):
+    observation_space = env.env_specs.observation_space[agent_id]
+    action_space = env.env_specs.action_space[agent_id]
+    return MFACAgent(
+        env_specs=env.env_specs,
+        policy=DeterministicMLPPolicy(
+            input_shapes=(observation_space.shape,),
+            output_shape=action_space.shape,
+            hidden_layer_sizes=hidden_layer_sizes,
+            name="policy_agent_{}".format(agent_id),
+        ),
+        qf=MLPValueFunction(
+            input_shapes=(observation_space.shape, (action_space.shape[0] * 2,),),
+            output_shape=(1,),
+            hidden_layer_sizes=hidden_layer_sizes,
+            name="qf_agent_{}".format(agent_id),
+        ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
+        exploration_strategy=OUExploration(action_space),
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )
 
@@ -313,27 +480,31 @@ def get_ddpgom_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size):
             input_shapes=(observation_space.shape,),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, (env.env_specs.action_space.flat_dim,)),
+            input_shapes=(
+                observation_space.shape,
+                (env.env_specs.action_space.flat_dim,),
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
         opponent_policy=DeterministicMLPPolicy(
             input_shapes=(observation_space.shape,),
             output_shape=(env.env_specs.action_space.opponent_flat_dim(agent_id),),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_policy_agent_{}'.format(agent_id)
+            name="opponent_policy_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
-                                          max_replay_buffer_size=max_replay_buffer_size
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
         exploration_strategy=OUExploration(action_space),
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )
 
@@ -344,29 +515,36 @@ def get_ddpgtom_agent(env, agent_id, hidden_layer_sizes, max_replay_buffer_size)
     return DDPGToMAgent(
         env_specs=env.env_specs,
         policy=DeterministicMLPPolicy(
-            input_shapes=(observation_space.shape, (env.env_specs.action_space.opponent_flat_dim(agent_id),)),
+            input_shapes=(
+                observation_space.shape,
+                (env.env_specs.action_space.opponent_flat_dim(agent_id),),
+            ),
             output_shape=action_space.shape,
             hidden_layer_sizes=hidden_layer_sizes,
-            name='policy_agent_{}'.format(agent_id)
+            name="policy_agent_{}".format(agent_id),
         ),
         qf=MLPValueFunction(
-            input_shapes=(observation_space.shape, (env.env_specs.action_space.flat_dim,)),
+            input_shapes=(
+                observation_space.shape,
+                (env.env_specs.action_space.flat_dim,),
+            ),
             output_shape=(1,),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='qf_agent_{}'.format(agent_id)
+            name="qf_agent_{}".format(agent_id),
         ),
         opponent_policy=DeterministicMLPPolicy(
             input_shapes=(observation_space.shape,),
             output_shape=(env.env_specs.action_space.opponent_flat_dim(agent_id),),
             hidden_layer_sizes=hidden_layer_sizes,
-            name='opponent_policy_agent_{}'.format(agent_id)
+            name="opponent_policy_agent_{}".format(agent_id),
         ),
-        replay_buffer=IndexedReplayBuffer(observation_dim=observation_space.shape[0],
-                                          action_dim=action_space.shape[0],
-                                          opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
-                                          max_replay_buffer_size=max_replay_buffer_size
-                                          ),
+        replay_buffer=IndexedReplayBuffer(
+            observation_dim=observation_space.shape[0],
+            action_dim=action_space.shape[0],
+            opponent_action_dim=env.env_specs.action_space.opponent_flat_dim(agent_id),
+            max_replay_buffer_size=max_replay_buffer_size,
+        ),
         exploration_strategy=OUExploration(action_space),
-        gradient_clipping=10.,
+        gradient_clipping=10.0,
         agent_id=agent_id,
     )

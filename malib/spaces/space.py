@@ -9,6 +9,7 @@ class MASpace(Space):
     Example usage:
     self.observation_space = MASpace((spaces.Discrete(2), spaces.Discrete(3)))
     """
+
     def __init__(self, spaces):
         self.spaces = spaces
         self.agent_num = len(spaces)
@@ -22,34 +23,53 @@ class MASpace(Space):
     def contains(self, x):
         if isinstance(x, list):
             x = tuple(x)
-        return isinstance(x, tuple) and len(x) == len(self.spaces) and all(
-            space.contains(part) for (space, part) in zip(self.spaces, x))
-
+        return (
+            isinstance(x, tuple)
+            and len(x) == len(self.spaces)
+            and all(space.contains(part) for (space, part) in zip(self.spaces, x))
+        )
 
     def to_jsonable(self, sample_n):
         # serialize as list-repr of tuple of vectors
-        return [space.to_jsonable([sample[i] for sample in sample_n]) \
-                for i, space in enumerate(self.spaces)]
+        return [
+            space.to_jsonable([sample[i] for sample in sample_n])
+            for i, space in enumerate(self.spaces)
+        ]
 
     def from_jsonable(self, sample_n):
-        return [sample for sample in zip(*[space.from_jsonable(sample_n[i]) for i, space in enumerate(self.spaces)])]
-
+        return [
+            sample
+            for sample in zip(
+                *[
+                    space.from_jsonable(sample_n[i])
+                    for i, space in enumerate(self.spaces)
+                ]
+            )
+        ]
 
     def flatten(self, x):
         assert len(x) == self.agent_num
-        return np.array([utils.flatten(space, x_i) for x_i, space in zip(x, self.spaces)])
+        return np.array(
+            [utils.flatten(space, x_i) for x_i, space in zip(x, self.spaces)]
+        )
 
     def unflatten(self, x):
         assert len(x) == self.agent_num
-        return np.array([utils.unflatten(space, x_i) for x_i, space in zip(x, self.spaces)])
+        return np.array(
+            [utils.unflatten(space, x_i) for x_i, space in zip(x, self.spaces)]
+        )
 
     def flatten_n(self, xs):
         assert len(xs) == self.agent_num
-        return np.array([utils.flatten_n(space, xs_i) for xs_i, space in zip(xs, self.spaces)])
+        return np.array(
+            [utils.flatten_n(space, xs_i) for xs_i, space in zip(xs, self.spaces)]
+        )
 
     def unflatten_n(self, xs):
         assert len(xs) == self.agent_num
-        return np.array([utils.unflatten_n(space, xs_i) for xs_i, space in zip(xs, self.spaces)])
+        return np.array(
+            [utils.unflatten_n(space, xs_i) for xs_i, space in zip(xs, self.spaces)]
+        )
 
     def __getitem__(self, i):
         assert (i >= 0) and (i < self.agent_num)
@@ -93,5 +113,9 @@ class MASpace(Space):
         return self.spaces == other.spaces
 
     def __repr__(self):
-        return '\n'.join(["Agent {}, {}".format(i, space.__repr__()) for i, space in zip(range(self.agent_num), self.spaces)])
-
+        return "\n".join(
+            [
+                "Agent {}, {}".format(i, space.__repr__())
+                for i, space in zip(range(self.agent_num), self.spaces)
+            ]
+        )

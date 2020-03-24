@@ -4,17 +4,13 @@ import unittest
 
 from malib.logger import Snapshotter
 
-configurations = [('all', {
-    'itr_1.pkl': 0,
-    'itr_2.pkl': 1
-}), ('last', {
-    'params.pkl': 1
-}), ('gap', {
-    'itr_2.pkl': 1
-}), ('gap_and_last', {
-    'itr_2.pkl': 1,
-    'params.pkl': 1
-}), ('none', {})]
+configurations = [
+    ("all", {"itr_1.pkl": 0, "itr_2.pkl": 1}),
+    ("last", {"params.pkl": 1}),
+    ("gap", {"itr_2.pkl": 1}),
+    ("gap_and_last", {"itr_2.pkl": 1, "params.pkl": 1}),
+    ("none", {}),
+]
 
 
 class TestSanpshotter(unittest.TestCase):
@@ -53,5 +49,5 @@ class TestSanpshotter(unittest.TestCase):
     def test_invalid_snapshot_mode(self):
         with self.assertRaises(ValueError):
             self.snapshotter.snapshot_dir = self.snapshot_dir.name
-            self.snapshotter.snapshot_mode = 'invalid'
-            self.snapshotter.save_itr_params(2, {'testparam': 'invalid'})
+            self.snapshotter.snapshot_mode = "invalid"
+            self.snapshotter.save_itr_params(2, {"testparam": "invalid"})

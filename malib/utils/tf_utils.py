@@ -3,8 +3,10 @@ import tensorflow as tf
 
 EPS = 1e-6
 
-def soft_variables_update(source_variables, target_variables, tau=1.0,
-                          sort_variables_by_name=False, name=None):
+
+def soft_variables_update(
+    source_variables, target_variables, tau=1.0, sort_variables_by_name=False, name=None
+):
     """Performs a soft/hard update of variables from the source to the target.
     For each variable v_t in target variables and its corresponding variable v_s
     in source variables, a soft update is:
@@ -25,12 +27,12 @@ def soft_variables_update(source_variables, target_variables, tau=1.0,
       ValueError: if tau is not in [0, 1].
     """
     if tau < 0 or tau > 1:
-        raise ValueError('Input `tau` should be in [0, 1].')
+        raise ValueError("Input `tau` should be in [0, 1].")
     updates = []
 
-    op_name = 'soft_variables_update'
+    op_name = "soft_variables_update"
     if name is not None:
-        op_name = '{}_{}'.format(name, op_name)
+        op_name = "{}_{}".format(name, op_name)
     if tau == 0.0 or not source_variables or not target_variables:
         return tf.no_op(name=op_name)
     if sort_variables_by_name:

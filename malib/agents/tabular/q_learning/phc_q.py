@@ -10,7 +10,7 @@ from malib.agents.tabular.q_learning.base_tabular_agent import StationaryAgent
 class PHCAgent(QAgent):
     def __init__(self, id_, action_num, env, delta=0.02, **kwargs):
         super().__init__(id_, action_num, env, **kwargs)
-        self.name = 'phc'
+        self.name = "phc"
         self.delta = delta
         self.pi_history = [deepcopy(self.pi)]
 
@@ -27,7 +27,7 @@ class PHCAgent(QAgent):
 class WoLFPHCAgent(PHCAgent):
     def __init__(self, _id, action_num, env, delta_w=0.0025, delta_l=0.005, **kwargs):
         super().__init__(_id, action_num, env, **kwargs)
-        self.name = 'wolf'
+        self.name = "wolf"
         self.delta_w = delta_w
         self.delta_l = delta_l
         self.pi_ = defaultdict(partial(np.random.dirichlet, [1.0] * self.action_num))
@@ -41,8 +41,9 @@ class WoLFPHCAgent(PHCAgent):
     def update_policy(self, s, a, env):
         self.count_pi[s] += 1
         self.pi_[s] += (self.pi[s] - self.pi_[s]) / self.count_pi[s]
-        self.delta = self.delta_w \
-            if np.dot(self.pi[s], self.Q[s]) \
-               > np.dot(self.pi_[s], self.Q[s]) \
+        self.delta = (
+            self.delta_w
+            if np.dot(self.pi[s], self.Q[s]) > np.dot(self.pi_[s], self.Q[s])
             else self.delta_l
+        )
         super().update_policy(s, a, env)

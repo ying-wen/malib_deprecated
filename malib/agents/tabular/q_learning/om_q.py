@@ -8,22 +8,26 @@ from malib.agents.tabular.q_learning.base_q import QAgent
 from malib.agents.tabular.utils import softmax
 
 
-
 class OMQAgent(QAgent):
     def __init__(self, id_, action_num, env, **kwargs):
         super().__init__(id_, action_num, env, **kwargs)
-        self.name = 'omq'
+        self.name = "omq"
         self.count_SO = defaultdict(partial(np.zeros, self.action_num))
-        self.opponent_pi = defaultdict(partial(np.random.dirichlet, [1.0] * self.action_num))
+        self.opponent_pi = defaultdict(
+            partial(np.random.dirichlet, [1.0] * self.action_num)
+        )
         self.pi_history = [deepcopy(self.pi)]
         self.opponent_pi_history = [deepcopy(self.opponent_pi)]
-        self.Q = defaultdict(partial(np.random.rand, *(self.action_num, self.action_num)))
+        self.Q = defaultdict(
+            partial(np.random.rand, *(self.action_num, self.action_num))
+        )
         self.R = defaultdict(partial(np.zeros, (self.action_num, self.action_num)))
-        self.count_R = defaultdict(partial(np.zeros, (self.action_num, self.action_num)))
-
+        self.count_R = defaultdict(
+            partial(np.zeros, (self.action_num, self.action_num))
+        )
 
     def update(self, s, a, o, r, s2, env, done=False):
-        self.count_SO[s][o] += 1.
+        self.count_SO[s][o] += 1.0
         self.opponent_pi[s] = self.count_SO[s] / np.sum(self.count_SO[s])
         self.count_R[s][a][o] += 1.0
         self.R[s][a][o] += (r - self.R[s][a][o]) / self.count_R[s][a][o]
@@ -53,4 +57,4 @@ class OMQAgent(QAgent):
         self.pi_history.append(deepcopy(self.pi))
         self.opponent_pi_history.append(deepcopy(self.opponent_pi))
         if self.verbose:
-            print('opponent pi of {}: {}'.format(self.id_, self.opponent_pi[s]))
+            print("opponent pi of {}: {}".format(self.id_, self.opponent_pi[s]))

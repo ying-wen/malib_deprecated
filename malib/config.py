@@ -1,7 +1,7 @@
 import os
 import os.path as osp
 
-PROJECT_PATH = osp.abspath(osp.join(osp.dirname(__file__), '..'))
+PROJECT_PATH = osp.abspath(osp.join(osp.dirname(__file__), ".."))
 
 LOG_DIR = PROJECT_PATH + "/data"
 
@@ -29,7 +29,7 @@ AWS_KEY_NAME = "AWS_KEY_NAME"
 
 AWS_SPOT = True
 
-AWS_SPOT_PRICE = '1.0'
+AWS_SPOT_PRICE = "1.0"
 
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY", None)
 
@@ -58,11 +58,7 @@ FAST_CODE_SYNC = True
 
 FAST_CODE_SYNC_IGNORES = [".git", "data", ".pods"]
 
-KUBE_DEFAULT_RESOURCES = {
-    "requests": {
-        "cpu": 0.8,
-    }
-}
+KUBE_DEFAULT_RESOURCES = {"requests": {"cpu": 0.8,}}
 
 KUBE_DEFAULT_NODE_SELECTOR = {
     "aws/type": "m4.xlarge",
@@ -80,15 +76,21 @@ if osp.exists(osp.join(osp.dirname(__file__), "config_personal.py")):
 else:
     print("Creating your personal config from template...")
     from shutil import copy
+
     copy(
         osp.join(PROJECT_PATH, "malib/config_personal_template.py"),
-        osp.join(PROJECT_PATH, "malib/config_personal.py"))
+        osp.join(PROJECT_PATH, "malib/config_personal.py"),
+    )
     from malib.config_personal import *  # noqa: F401, F403
-    print("Personal config created, but you should probably edit it before "
-          "further experiments are run")
-    if 'CIRCLECI' not in os.environ:
+
+    print(
+        "Personal config created, but you should probably edit it before "
+        "further experiments are run"
+    )
+    if "CIRCLECI" not in os.environ:
         print("Exiting.")
         import sys
+
         sys.exit(0)
 
 LABEL = ""

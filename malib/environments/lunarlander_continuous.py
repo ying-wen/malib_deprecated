@@ -16,11 +16,15 @@ UPDATE_INTERVAL = 10
 
 class LunarLanderContinuous(BaseGame):
     def __init__(self):
-        self.env = gym.make('LunarLanderContinuous-v2')
+        self.env = gym.make("LunarLanderContinuous-v2")
 
         self.agent_num = 2
-        self.observation_spaces = MASpace(tuple(self.env.observation_space for _ in range(self.agent_num)))
-        self.action_spaces = MASpace(tuple([Box(low=-1., high=1., shape=(1,)) for _ in range(self.agent_num)]))
+        self.observation_spaces = MASpace(
+            tuple(self.env.observation_space for _ in range(self.agent_num))
+        )
+        self.action_spaces = MASpace(
+            tuple([Box(low=-1.0, high=1.0, shape=(1,)) for _ in range(self.agent_num)])
+        )
         self.env_specs = MAEnvSpec(self.observation_spaces, self.action_spaces)
 
     def step(self, actions):

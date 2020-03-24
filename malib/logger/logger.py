@@ -152,7 +152,7 @@ class LogOutput(abc.ABC):
         return ()
 
     @abc.abstractmethod
-    def record(self, data, prefix=''):
+    def record(self, data, prefix=""):
         """Pass logger data to this output.
 
         :param data: The data to be logged by the output.
@@ -182,7 +182,7 @@ class Logger:
     def __init__(self):
         self._outputs = []
         self._prefixes = []
-        self._prefix_str = ''
+        self._prefix_str = ""
         self._warned_once = set()
         self._disable_warnings = False
 
@@ -199,7 +199,7 @@ class Logger:
          types_accepted property of any of the logger outputs.
         """
         if not self._outputs:
-            self._warn('No outputs have been added to the logger.')
+            self._warn("No outputs have been added to the logger.")
 
         at_least_one_logged = False
         for output in self._outputs:
@@ -208,9 +208,9 @@ class Logger:
                 at_least_one_logged = True
 
         if not at_least_one_logged:
-            warning = (
-                'Log data of type {} was not accepted by any output'.format(
-                    type(data).__name__))
+            warning = "Log data of type {} was not accepted by any output".format(
+                type(data).__name__
+            )
             self._warn(warning)
 
     def add_output(self, output):
@@ -221,10 +221,10 @@ class Logger:
         :param output: An instantiation of a LogOutput subclass to be added.
         """
         if isinstance(output, type):
-            msg = 'Output object must be instantiated - don\'t pass a type.'
+            msg = "Output object must be instantiated - don't pass a type."
             raise ValueError(msg)
         elif not isinstance(output, LogOutput):
-            raise ValueError('Output object must be a subclass of LogOutput')
+            raise ValueError("Output object must be a subclass of LogOutput")
         self._outputs.append(output)
 
     def remove_all(self):
@@ -237,8 +237,7 @@ class Logger:
         :param output_type: A LogOutput subclass type to be removed.
         """
         self._outputs = [
-            output for output in self._outputs
-            if not isinstance(output, output_type)
+            output for output in self._outputs if not isinstance(output, output_type)
         ]
 
     def reset_output(self, output):
@@ -302,12 +301,12 @@ class Logger:
         :param prefix: The prefix string to be logged.
         """
         self._prefixes.append(prefix)
-        self._prefix_str = ''.join(self._prefixes)
+        self._prefix_str = "".join(self._prefixes)
 
     def pop_prefix(self):
         """Pop prefix from prefix stack."""
         del self._prefixes[-1]
-        self._prefix_str = ''.join(self._prefixes)
+        self._prefix_str = "".join(self._prefixes)
 
     def _warn(self, msg):
         """Warns the user using warnings.warn.
@@ -316,7 +315,7 @@ class Logger:
         is the one printed.
         """
         if not self._disable_warnings and msg not in self._warned_once:
-            warnings.warn(colorize(msg, 'yellow'), LoggerWarning, stacklevel=3)
+            warnings.warn(colorize(msg, "yellow"), LoggerWarning, stacklevel=3)
         self._warned_once.add(msg)
         return msg
 

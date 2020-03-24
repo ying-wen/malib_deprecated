@@ -8,10 +8,26 @@ from malib.utils import tf_utils
 
 
 class MADDPGAgent(OffPolicyAgent):
-    def __init__(self, env_specs, policy, qf, replay_buffer, policy_optimizer=tf.optimizers.Adam(),
-                 qf_optimizer=tf.optimizers.Adam(), exploration_strategy=None, exploration_interval=10,
-                 target_update_tau=0.01, target_update_period=1, td_errors_loss_fn=None, gamma=0.95, reward_scale=1.0,
-                 gradient_clipping=None, train_sequence_length=None, name='MADDPG', agent_id=-1):
+    def __init__(
+        self,
+        env_specs,
+        policy,
+        qf,
+        replay_buffer,
+        policy_optimizer=tf.optimizers.Adam(),
+        qf_optimizer=tf.optimizers.Adam(),
+        exploration_strategy=None,
+        exploration_interval=10,
+        target_update_tau=0.01,
+        target_update_period=1,
+        td_errors_loss_fn=None,
+        gamma=0.95,
+        reward_scale=1.0,
+        gradient_clipping=None,
+        train_sequence_length=None,
+        name="MADDPG",
+        agent_id=-1,
+    ):
         self._Serializable__initialize(locals())
         self._agent_id = agent_id
         self._env_specs = env_specs
@@ -24,15 +40,19 @@ class MADDPGAgent(OffPolicyAgent):
 
         self._exploration_strategy = exploration_strategy
 
-        self._target_policy = Serializable.clone(policy, name='target_policy_agent_{}'.format(self._agent_id))
-        self._target_qf = Serializable.clone(qf, name='target_qf_agent_{}'.format(self._agent_id))
+        self._target_policy = Serializable.clone(
+            policy, name="target_policy_agent_{}".format(self._agent_id)
+        )
+        self._target_qf = Serializable.clone(
+            qf, name="target_qf_agent_{}".format(self._agent_id)
+        )
 
         self._policy_optimizer = policy_optimizer
         self._qf_optimizer = qf_optimizer
 
         self._target_update_tau = target_update_tau
         self._target_update_period = target_update_period
-        self._td_errors_loss_fn = (td_errors_loss_fn or tf.losses.Huber)
+        self._td_errors_loss_fn = td_errors_loss_fn or tf.losses.Huber
         self._gamma = gamma
         self._reward_scale = reward_scale
         self._gradient_clipping = gradient_clipping
@@ -40,11 +60,24 @@ class MADDPGAgent(OffPolicyAgent):
         self._exploration_interval = exploration_interval
         self._exploration_status = False
 
-        self.required_experiences = ['observation', 'actions', 'rewards', 'next_observations', 'opponent_actions',
-                                     'target_actions']
+        self.required_experiences = [
+            "observation",
+            "actions",
+            "rewards",
+            "next_observations",
+            "opponent_actions",
+            "target_actions",
+        ]
 
-        super(MADDPGAgent, self).__init__(observation_space, action_space, policy, qf, replay_buffer,
-                                          train_sequence_length=train_sequence_length, name=name, )
+        super(MADDPGAgent, self).__init__(
+            observation_space,
+            action_space,
+            policy,
+            qf,
+            replay_buffer,
+            train_sequence_length=train_sequence_length,
+            name=name,
+        )
 
     def act(self, observation, step=None, use_target=False):
         # if use_target is False:
@@ -70,47 +103,75 @@ class MADDPGAgent(OffPolicyAgent):
                 step = self._train_step
             if step % self._exploration_interval == 0:
                 self._exploration_strategy.reset()
-            return self._exploration_strategy.get_action(self._train_step, observation, self._policy)
+            return self._exploration_strategy.get_action(
+                self._train_step, observation, self._policy
+            )
         policy = self._policy
         return policy.get_actions_np(observation)[0]
 
     def init_opt(self):
-        tf_utils.soft_variables_update(self._policy.trainable_variables, self._target_policy.trainable_variables,
-                                       tau=1.0)
-        tf_utils.soft_variables_update(self._qf.trainable_variables, self._target_qf.trainable_variables, tau=1.0)
+        tf_utils.soft_variables_update(
+            self._policy.trainable_variables,
+            self._target_policy.trainable_variables,
+            tau=1.0,
+        )
+        tf_utils.soft_variables_update(
+            self._qf.trainable_variables, self._target_qf.trainable_variables, tau=1.0
+        )
         self._exploration_status = True
 
     def init_eval(self):
         self._exploration_status = False
 
     def _update_target(self):
-        tf_utils.soft_variables_update(self._policy.trainable_variables, self._target_policy.trainable_variables,
-                                       tau=self._target_update_tau)
-        tf_utils.soft_variables_update(self._qf.trainable_variables, self._target_qf.trainable_variables,
-                                       tau=self._target_update_tau)
+        tf_utils.soft_variables_update(
+            self._policy.trainable_variables,
+            self._target_policy.trainable_variables,
+            tau=self._target_update_tau,
+        )
+        tf_utils.soft_variables_update(
+            self._qf.trainable_variables,
+            self._target_qf.trainable_variables,
+            tau=self._target_update_tau,
+        )
 
     def _critic_train(self, batch, weights=None):
         critic_variables = self._qf.trainable_variables
         with tf.GradientTape(watch_accessed_variables=False) as tape:
-            assert critic_variables, 'No qf variables to optimize.'
+            assert critic_variables, "No qf variables to optimize."
             tape.watch(critic_variables)
-            critic_loss = self.critic_loss(batch['observations'], batch['actions'], batch['opponent_actions'],
-                                           batch['target_actions'], batch['rewards'], batch['next_observations'],
-                                           weights=weights)
-        tf.debugging.check_numerics(critic_loss, 'qf loss is inf or nan.')
+            critic_loss = self.critic_loss(
+                batch["observations"],
+                batch["actions"],
+                batch["opponent_actions"],
+                batch["target_actions"],
+                batch["rewards"],
+                batch["next_observations"],
+                weights=weights,
+            )
+        tf.debugging.check_numerics(critic_loss, "qf loss is inf or nan.")
         critic_grads = tape.gradient(critic_loss, critic_variables)
-        tf_utils.apply_gradients(critic_grads, critic_variables, self._qf_optimizer, self._gradient_clipping)
+        tf_utils.apply_gradients(
+            critic_grads, critic_variables, self._qf_optimizer, self._gradient_clipping
+        )
         return critic_loss
 
     def _actor_train(self, batch, weights=None):
         actor_variables = self._policy.trainable_variables
         with tf.GradientTape(watch_accessed_variables=False) as tape:
-            assert actor_variables, 'No actor variables to optimize.'
+            assert actor_variables, "No actor variables to optimize."
             tape.watch(actor_variables)
-            actor_loss = self.actor_loss(batch['observations'], batch['opponent_actions'], weights=weights)
-        tf.debugging.check_numerics(actor_loss, 'Actor loss is inf or nan.')
+            actor_loss = self.actor_loss(
+                batch["observations"], batch["opponent_actions"], weights=weights
+            )
+        tf.debugging.check_numerics(actor_loss, "Actor loss is inf or nan.")
         actor_grads = tape.gradient(actor_loss, actor_variables)
-        tf_utils.apply_gradients(actor_grads, actor_variables, self._policy_optimizer, self._gradient_clipping)
+        tf_utils.apply_gradients(
+            actor_grads,
+            actor_variables,
+            self._policy_optimizer,
+            self._gradient_clipping,
+        )
         return actor_loss
 
     def _train(self, batch, weights=None):
@@ -122,13 +183,24 @@ class MADDPGAgent(OffPolicyAgent):
         if self._train_step % self._target_update_period == 0:
             self._update_target()
 
-        losses = {'pg_loss': actor_loss.numpy(), 'critic_loss': critic_loss.numpy(), }
+        losses = {
+            "pg_loss": actor_loss.numpy(),
+            "critic_loss": critic_loss.numpy(),
+        }
 
         return losses
 
     @tf.function
-    def critic_loss(self, observations, actions, opponent_actions, target_actions, rewards, next_observations,
-                    weights=None):
+    def critic_loss(
+        self,
+        observations,
+        actions,
+        opponent_actions,
+        target_actions,
+        rewards,
+        next_observations,
+        weights=None,
+    ):
         """Computes the critic loss for DDPG training.
         Args:
           observations: A batch of observations.
@@ -146,11 +218,19 @@ class MADDPGAgent(OffPolicyAgent):
         target_q_values = self._target_qf.get_values(target_critic_input)
         target_q_values = tf.squeeze(target_q_values)
 
-        td_targets = tf.stop_gradient(self._reward_scale * rewards + self._gamma * target_q_values)
-        critic_net_input = [observations, tf.concat((actions, opponent_actions), axis=1)]
+        td_targets = tf.stop_gradient(
+            self._reward_scale * rewards + self._gamma * target_q_values
+        )
+        opponent_actions
+        critic_net_input = [
+            observations,
+            tf.concat((actions, opponent_actions), axis=1),
+        ]
         q_values = self._qf.get_values(critic_net_input)
         q_values = tf.squeeze(q_values)
-        critic_loss = self._td_errors_loss_fn(reduction=tf.losses.Reduction.NONE)(td_targets, q_values)
+        critic_loss = self._td_errors_loss_fn(reduction=tf.losses.Reduction.NONE)(
+            td_targets, q_values
+        )
 
         if weights is not None:
             critic_loss = weights * critic_loss

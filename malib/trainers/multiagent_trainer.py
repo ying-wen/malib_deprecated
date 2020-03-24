@@ -8,15 +8,19 @@ from malib.trainers.utils import *
 class MATrainer:
     """This class implements a multi-agent trainer.
     """
+
     def __init__(
-            self, env, agents, sampler,
-            batch_size=128,
-            steps=10000,
-            exploration_steps=100,
-            training_interval=1,
-            extra_experiences=['target_actions'],
-            save_path=None,
-            is_rommeo=False
+        self,
+        env,
+        agents,
+        sampler,
+        batch_size=128,
+        steps=10000,
+        exploration_steps=100,
+        training_interval=1,
+        extra_experiences=["recent_experiences", "target_actions"],
+        save_path=None,
+        is_rommeo=False,
     ):
         self.env = env
         self.agents = agents
@@ -67,30 +71,37 @@ class MATrainer:
             if step % self.training_interval == 0:
                 batches = self.sample_batches()
                 for extra_experience in self.extra_experiences:
-                    if extra_experience == 'annealing':
-                        batches = add_annealing(batches, step - self.exploration_steps, annealing_scale=1.)
+                    if extra_experience == "annealing":
+                        batches = add_annealing(
+                            batches, step - self.exploration_steps, annealing_scale=1.0
+                        )
                         # print('annealing', batches[0]['annealing'])
-                    elif extra_experience == 'target_actions':
-                        batches = add_target_actions(batches, self.agents, self.batch_size)
-                    elif extra_experience == 'recent_experiences':
-                        batches = add_recent_batches(batches, self.agents, self.batch_size)
+                    elif extra_experience == "target_actions":
+                        batches = add_target_actions(
+                            batches, self.agents, self.batch_size
+                        )
+                    elif extra_experience == "recent_experiences":
+                        batches = add_recent_batches(
+                            batches, self.agents, self.batch_size
+                        )
                 agents_losses = []
 
                 for i, (agent, batch) in enumerate(zip(self.agents, batches)):
+                    print(batch.keys())
                     agent_losses = agent.train(batch)
                     agents_losses.append(agent_losses)
                 self.losses.append(agents_losses)
-                print('agent 1', self.losses[-1][0])
-                print('agent 2', self.losses[-1][1])
+                print("agent 1", self.losses[-1][0])
+                print("agent 2", self.losses[-1][1])
 
     def save(self):
         if self.save_path is None:
-            self.save_path = '/tmp/agents.pickle'
-        with open(self.save_path, 'wb') as f:
+            self.save_path = "/tmp/agents.pickle"
+        with open(self.save_path, "wb") as f:
             pickle.dump(self.agents, f, pickle.HIGHEST_PROTOCOL)
 
     def restore(self, restore_path):
-        with open(restore_path, 'rb') as f:
+        with open(restore_path, "rb") as f:
             self.agents = pickle.load(f)
 
     def resume(self):

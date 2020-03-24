@@ -12,13 +12,12 @@ class DummyBoxEnv:
     @property
     def observation_space(self):
         """Return an observation space."""
-        return gym.spaces.Box(low=-1, high=1, shape=(1, ), dtype=np.float32)
+        return gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
 
     @property
     def action_space(self):
         """Return an action space."""
-        return gym.spaces.Box(
-            low=-5.0, high=5.0, shape=(1, ), dtype=np.float32)
+        return gym.spaces.Box(low=-5.0, high=5.0, shape=(1,), dtype=np.float32)
 
     def reset(self):
         """Reset the environment."""

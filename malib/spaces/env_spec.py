@@ -4,10 +4,7 @@ from malib.core import Serializable
 
 
 class EnvSpec:
-    def __init__(
-            self,
-            observation_space,
-            action_space):
+    def __init__(self, observation_space, action_space):
         """
         :type observation_space: Space
         :type action_space: Space
@@ -25,10 +22,7 @@ class EnvSpec:
 
 
 class MAEnvSpec(Serializable):
-    def __init__(
-            self,
-            observation_spaces,
-            action_spaces):
+    def __init__(self, observation_spaces, action_spaces):
         """
         :type observation_spaces: MASpace
         :type action_spaces: MASpace
@@ -39,7 +33,12 @@ class MAEnvSpec(Serializable):
         self.agent_num = observation_spaces.agent_num
         self._observation_spaces = observation_spaces
         self._action_spaces = action_spaces
-        self._env_specs = np.array(EnvSpec(observation_space, action_space) for observation_space, action_space in zip(observation_spaces, action_spaces))
+        self._env_specs = np.array(
+            EnvSpec(observation_space, action_space)
+            for observation_space, action_space in zip(
+                observation_spaces, action_spaces
+            )
+        )
 
     @property
     def observation_space(self):

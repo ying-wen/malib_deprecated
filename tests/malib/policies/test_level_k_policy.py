@@ -8,32 +8,38 @@ from malib.policies import GaussianMLPPolicy, UniformPolicy, LevelKPolicy
 
 class LevelKPolicyTest(tf.test.TestCase):
     def setUp(self):
-        self.env = gym.envs.make('MountainCarContinuous-v0')
+        self.env = gym.envs.make("MountainCarContinuous-v0")
         self.k = 2
         self.hidden_layer_sizes = (128, 128)
         self.prior_policy = UniformPolicy(
             input_shapes=(self.env.observation_space.shape,),
-            output_shape=self.env.action_space.shape)
+            output_shape=self.env.action_space.shape,
+        )
         self.main_policy = GaussianMLPPolicy(
-            input_shapes=(self.env.observation_space.shape,
-                          self.env.action_space.shape),
+            input_shapes=(
+                self.env.observation_space.shape,
+                self.env.action_space.shape,
+            ),
             output_shape=self.env.action_space.shape,
             hidden_layer_sizes=self.hidden_layer_sizes,
-            name='Policy'
+            name="Policy",
         )
         self.second_policy = GaussianMLPPolicy(
             input_shapes=(
                 self.env.observation_space.shape,
-                self.env.action_space.shape),
+                self.env.action_space.shape,
+            ),
             output_shape=self.env.action_space.shape,
             hidden_layer_sizes=self.hidden_layer_sizes,
-            name='SecPolicy')
-        self.level_k_policy = LevelKPolicy(main_policy=self.main_policy,
-                                           secondary_policy=self.second_policy,
-                                           prior_policy=self.prior_policy,
-                                           secondary_prior_policy=self.prior_policy,
-                                           k=self.k
-                                           )
+            name="SecPolicy",
+        )
+        self.level_k_policy = LevelKPolicy(
+            main_policy=self.main_policy,
+            secondary_policy=self.second_policy,
+            prior_policy=self.prior_policy,
+            secondary_prior_policy=self.prior_policy,
+            k=self.k,
+        )
 
     def test_actions_and_log_pis_symbolic(self):
         observation1_np = self.env.reset()
@@ -43,11 +49,15 @@ class LevelKPolicyTest(tf.test.TestCase):
         observations_tf = tf.constant(observations_np, dtype=tf.float32)
 
         all_actions = self.level_k_policy.get_actions([observations_tf], self.k)
-        all_log_pis = self.level_k_policy.log_pis([observations_tf], self.k, all_actions)
+        all_log_pis = self.level_k_policy.log_pis(
+            [observations_tf], self.k, all_actions
+        )
         print(all_actions)
         print(all_log_pis)
 
-        all_action = self.level_k_policy.get_action_np(observation1_np.astype(np.float32), 3)
+        all_action = self.level_k_policy.get_action_np(
+            observation1_np.astype(np.float32), 3
+        )
         # all_log_pis = self.level_k_policy.log_pis(observation1_np.astype(np.float32), 3, all_action)
         print(all_action)
         # print(all_log_pis)
@@ -65,7 +75,6 @@ class LevelKPolicyTest(tf.test.TestCase):
         #
         # self.assertEqual(actions_np.shape, (2, *self.env.action_space.shape))
         # self.assertEqual(log_pis_np.shape, (2, 1))
-
 
     # def test_actions_and_log_pis_numeric(self):
     #     observation1_np = self.env.reset()
@@ -201,5 +210,5 @@ class LevelKPolicyTest(tf.test.TestCase):
     #     np.testing.assert_equal(smoothed_policy._smoothing_x, 0.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tf.test.main()

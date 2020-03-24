@@ -9,15 +9,18 @@ from malib.agents.tabular.q_learning.base_q import QAgent
 
 
 class JALAgent(QAgent):
-    def __init__(self, id_, action_num, env, sliding_wnd_size=50, exploration=True,
-                 **kwargs):
+    def __init__(
+        self, id_, action_num, env, sliding_wnd_size=50, exploration=True, **kwargs
+    ):
         super().__init__(id_, action_num, env, **kwargs)
-        self.name = 'JAL'
+        self.name = "JAL"
         self.exploration = exploration
         self.episilon_init = np.copy(self.episilon)
 
         self.pi_history = [deepcopy(self.pi)]
-        self.Q = defaultdict(partial(np.random.rand, *(self.action_num, self.action_num)))
+        self.Q = defaultdict(
+            partial(np.random.rand, *(self.action_num, self.action_num))
+        )
         self.sliding_wnd_size = sliding_wnd_size
 
         self.pi_neg_i = defaultdict(
@@ -39,7 +42,8 @@ class JALAgent(QAgent):
             denominator += 1
             a_neg_i_map[exp[2]] += 1
         self.pi_neg_i[s] = np.array(
-            [a_neg_i_map[i] / denominator for i in range(self.action_num)])
+            [a_neg_i_map[i] / denominator for i in range(self.action_num)]
+        )
 
     def update(self, s, a, o, r, s2, env, done=False):
         self.update_opponent_action_prob(s=s, a_i=a, a_neg_i=o, s_prime=s2, r=r)
@@ -63,16 +67,15 @@ class JALAgent(QAgent):
         sample = self.replay_buffer[-1]
         s, a_i, a_neg_i, s_prime, r = sample
         decay_alpha = self.step_decay()
-        self.episilon = self.episilon_init*self.step_decay()
+        self.episilon = self.episilon_init * self.step_decay()
         if not done:
             v_s_prime = np.max(self.compute_marginal_pi(s_prime))
             y = r + gamma * v_s_prime * (1 - done)
         else:
             y = r
-        self.Q[s][a_i, a_neg_i] = (
-            (1 - decay_alpha) * self.Q[s][a_i, a_neg_i] +
-            decay_alpha * y
-        )
+        self.Q[s][a_i, a_neg_i] = (1 - decay_alpha) * self.Q[s][
+            a_i, a_neg_i
+        ] + decay_alpha * y
         self.compute_marginal_pi(s)
 
     def act(self, s, exploration, game):
@@ -91,13 +94,18 @@ class JALAgent(QAgent):
         else:
             if self.verbose:
                 for s in self.Q.keys():
-                    print('{}--------------'.format(self.id_))
-                    print('Q of agent {}: state {}: {}'.format(self.id_, s, str(self.Q[s])))
+                    print("{}--------------".format(self.id_))
+                    print(
+                        "Q of agent {}: state {}: {}".format(
+                            self.id_, s, str(self.Q[s])
+                        )
+                    )
                     # print('QAof agent {}: state {}: {}'.format(self.id_, s, str(self.Q_A[s])))
                     # self.Q_A
-                    print('pi of agent {}: state {}: {}'.format(self.id_, s, self.pi[s]))
+                    print(
+                        "pi of agent {}: state {}: {}".format(self.id_, s, self.pi[s])
+                    )
                     # print('pi of opponent agent {}: state{}: {}'.format(self.id_, s, self.opponent_best_pi[s]))
-                    print('{}--------------'.format(self.id_))
+                    print("{}--------------".format(self.id_))
             agent_action = np.argmax(agent_p)
         return agent_action
-

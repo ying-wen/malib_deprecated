@@ -28,17 +28,17 @@ class Agent(object):
 
     @staticmethod
     def format_time(n):
-        return ''
+        return ""
         # s = humanfriendly.format_size(n)
         # return s.replace(' ', '').replace('bytes', '').replace('byte', '').rstrip('B')
 
     def full_name(self, env):
-        return '{}_{}_{}'.format(env.name, self.name, self.id_)
+        return "{}_{}_{}".format(env.name, self.name, self.id_)
 
 
 class StationaryAgent(Agent):
     def __init__(self, id_, action_num, env, pi=None):
-        super().__init__('stationary', id_, action_num, env)
+        super().__init__("stationary", id_, action_num, env)
         if pi is None:
             pi = np.random.dirichlet([1.0] * self.action_num)
         self.pi = np.array(pi, dtype=np.double)
@@ -46,7 +46,7 @@ class StationaryAgent(Agent):
 
     def act(self, s, exploration, env):
         if self.verbose:
-            print('pi of agent {}: {}'.format(self.id_, self.pi))
+            print("pi of agent {}: {}".format(self.id_, self.pi))
         return StationaryAgent.sample(self.pi)
 
     @staticmethod
@@ -65,4 +65,4 @@ class RandomAgent(StationaryAgent):
     def __init__(self, id_, action_num, env):
         assert action_num > 0
         super().__init__(id_, env, action_num, pi=[1.0 / action_num] * action_num)
-        self.name = 'random'
+        self.name = "random"

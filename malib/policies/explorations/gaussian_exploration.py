@@ -11,11 +11,9 @@ class GaussianExploration(ExplorationBase):
     policy.
     """
 
-    def __init__(self,
-                 action_space,
-                 max_sigma=1.0,
-                 min_sigma=0.1,
-                 decay_period=1000000):
+    def __init__(
+        self, action_space, max_sigma=1.0, min_sigma=0.1, decay_period=1000000
+    ):
         assert isinstance(action_space, gym.spaces.Box)
         assert len(action_space.shape) == 1
         self._max_sigma = max_sigma
@@ -26,8 +24,10 @@ class GaussianExploration(ExplorationBase):
     def get_action(self, t, observation, policy, **kwargs):
         action, agent_info = policy.get_action(observation)
         sigma = self._max_sigma - (self._max_sigma - self._min_sigma) * min(
-            1.0, t * 1.0 / self._decay_period)
+            1.0, t * 1.0 / self._decay_period
+        )
         return np.clip(
             action + np.random.normal(size=len(action)) * sigma,
             self._action_space.low,
-            self._action_space.high)
+            self._action_space.high,
+        )

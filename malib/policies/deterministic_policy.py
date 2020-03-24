@@ -7,18 +7,22 @@ import numpy as np
 import tensorflow as tf
 
 from malib.networks.mlp import MLP
+from malib.networks.bicnet import BiCNet
+from malib.networks.comment import CommNet
 from malib.policies.base_policy import Policy
 
 
 class DeterministicPolicy(Policy):
-    def __init__(self,
-                 input_shapes,
-                 output_shape,
-                 squash=True,
-                 preprocessor=None,
-                 name='DeterministicPolicy',
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        input_shapes,
+        output_shape,
+        squash=True,
+        preprocessor=None,
+        name="DeterministicPolicy",
+        *args,
+        **kwargs
+    ):
         self._Serializable__initialize(locals())
         self._input_shapes = input_shapes
         self._output_shape = output_shape
@@ -28,23 +32,23 @@ class DeterministicPolicy(Policy):
         super(DeterministicPolicy, self).__init__(*args, **kwargs)
 
         self.condition_inputs = [
-            tf.keras.layers.Input(shape=input_shape)
-            for input_shape in input_shapes
+            tf.keras.layers.Input(shape=input_shape) for input_shape in input_shapes
         ]
 
-        conditions = tf.keras.layers.Lambda(
-            lambda x: tf.concat(x, axis=-1)
-        )(self.condition_inputs)
+        conditions = tf.keras.layers.Lambda(lambda x: tf.concat(x, axis=-1))(
+            self.condition_inputs
+        )
 
         if preprocessor is not None:
             conditions = preprocessor(conditions)
         raw_actions = self._policy_net(
-            input_shapes=(conditions.shape[1:],),
-            output_size=output_shape[0],
+            input_shapes=(conditions.shape[1:],), output_size=output_shape[0],
         )(conditions)
         actions = raw_actions if self._squash else tf.nn.tanh(raw_actions)
         self.actions_model = tf.keras.Model(self.condition_inputs, actions)
-        self.diagnostics_model = tf.keras.Model(self.condition_inputs, (raw_actions, actions))
+        self.diagnostics_model = tf.keras.Model(
+            self.condition_inputs, (raw_actions, actions)
+        )
 
     def get_actions(self, conditions):
         return self.actions_model(conditions)
@@ -90,24 +94,27 @@ class DeterministicPolicy(Policy):
         Returns the mean, min, max, and standard deviation of means and
         covariances.
         """
-        (raw_actions_np,
-         actions_np) = self.diagnostics_model.predict(conditions)
+        (raw_actions_np, actions_np) = self.diagnostics_model.predict(conditions)
 
-        return OrderedDict({
-            '{}/raw-actions-mean'.format(self._name): np.mean(raw_actions_np),
-            '{}/raw-actions-std'.format(self._name): np.std(raw_actions_np),
-
-            '{}/actions-mean'.format(self._name): np.mean(actions_np),
-            '{}/actions-std'.format(self._name): np.std(actions_np),
-        })
+        return OrderedDict(
+            {
+                "{}/raw-actions-mean".format(self._name): np.mean(raw_actions_np),
+                "{}/raw-actions-std".format(self._name): np.std(raw_actions_np),
+                "{}/actions-mean".format(self._name): np.mean(actions_np),
+                "{}/actions-std".format(self._name): np.std(actions_np),
+            }
+        )
 
 
 class DeterministicMLPPolicy(DeterministicPolicy):
-    def __init__(self,
-                 hidden_layer_sizes,
-                 activation='relu',
-                 output_activation='linear',
-                 *args, **kwargs):
+    def __init__(
+        self,
+        hidden_layer_sizes,
+        activation="relu",
+        output_activation="linear",
+        *args,
+        **kwargs
+    ):
         self._hidden_layer_sizes = hidden_layer_sizes
         self._activation = activation
         self._output_activation = output_activation
@@ -122,6 +129,62 @@ class DeterministicMLPPolicy(DeterministicPolicy):
             output_size=output_size,
             activation=self._activation,
             output_activation=self._output_activation,
-            name='{}/GaussianMLPPolicy'.format(self._name)
+            name="{}/GaussianMLPPolicy".format(self._name),
+        )
+        return raw_actions
+
+
+class DeterministicBicNetPolicy(DeterministicPolicy):
+    def __init__(
+        self,
+        hidden_layer_sizes,
+        activation="relu",
+        output_activation="linear",
+        *args,
+        **kwargs
+    ):
+        self._hidden_layer_sizes = hidden_layer_sizes
+        self._activation = activation
+        self._output_activation = output_activation
+
+        self._Serializable__initialize(locals())
+        super(DeterministicBicNetPolicy, self).__init__(*args, **kwargs)
+
+    def _policy_net(self, input_shapes, output_size):
+        raw_actions = BiCNet(
+            input_shapes=input_shapes,
+            hidden_layer_sizes=self._hidden_layer_sizes,
+            output_size=output_size,
+            activation=self._activation,
+            output_activation=self._output_activation,
+            name="{}/GaussianMLPPolicy".format(self._name),
+        )
+        return raw_actions
+
+
+class DeterministicCommNetPolicy(DeterministicPolicy):
+    def __init__(
+        self,
+        hidden_layer_sizes,
+        activation="relu",
+        output_activation="linear",
+        *args,
+        **kwargs
+    ):
+        self._hidden_layer_sizes = hidden_layer_sizes
+        self._activation = activation
+        self._output_activation = output_activation
+
+        self._Serializable__initialize(locals())
+        super(DeterministicCommNetPolicy, self).__init__(*args, **kwargs)
+
+    def _policy_net(self, input_shapes, output_size):
+        raw_actions = CommNet(
+            input_shapes=input_shapes,
+            hidden_layer_sizes=self._hidden_layer_sizes,
+            output_size=output_size,
+            activation=self._activation,
+            output_activation=self._output_activation,
+            name="{}/GaussianMLPPolicy".format(self._name),
         )
         return raw_actions

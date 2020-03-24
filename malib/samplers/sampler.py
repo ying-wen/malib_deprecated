@@ -5,6 +5,7 @@ from PIL import Image
 import os
 import subprocess
 
+
 def render(env, filepath, episode_step, stitch=False):
     frame = env.render(mode="rgb_array")
     # Image.fromarray(frame).save(filepath + "." + ("%02d" % episode_step) + ".bmp")
@@ -45,11 +46,19 @@ class Sampler(object):
         self.env.terminate()
 
     def log_diagnostics(self):
-        logger.record_tabular('pool-size', self.pool.size)
+        logger.record_tabular("pool-size", self.pool.size)
 
 
 class MASampler(Sampler):
-    def __init__(self, agent_num, max_path_length=20, min_pool_size=10e4, batch_size=64, global_reward=False, **kwargs):
+    def __init__(
+        self,
+        agent_num,
+        max_path_length=20,
+        min_pool_size=10e4,
+        batch_size=64,
+        global_reward=False,
+        **kwargs
+    ):
         # super(MASampler, self).__init__(**kwargs)
         self.agent_num = agent_num
         self._max_path_length = max_path_length
@@ -74,7 +83,10 @@ class MASampler(Sampler):
             agent.policy = policy
 
     def batch_ready(self):
-        enough_samples = max(agent.replay_buffer.size for agent in self.agents) >= self._min_pool_size
+        enough_samples = (
+            max(agent.replay_buffer.size for agent in self.agents)
+            >= self._min_pool_size
+        )
         return enough_samples
 
     def random_batch(self, i):
@@ -90,12 +102,12 @@ class MASampler(Sampler):
         if self._current_observation_n is None:
             self._current_observation_n = self.env.reset()
         action_n = []
-        # print(self._current_observation_n)
-        # print(self._current_observation_n.shape)
         if explore:
             action_n = self.env.action_spaces.sample()
         else:
-            for agent, current_observation in zip(self.agents, self._current_observation_n):
+            for agent, current_observation in zip(
+                self.agents, self._current_observation_n
+            ):
                 action = agent.act(current_observation.astype(np.float32))
                 action_n.append(np.array(action))
 
@@ -109,33 +121,25 @@ class MASampler(Sampler):
         self._path_return += np.array(reward_n, dtype=np.float32)
         self._total_samples += 1
         for i, agent in enumerate(self.agents):
-            opponent_action = action_n[[j for j in range(len(action_n)) if j != i]].flatten()
+            opponent_action = action_n[
+                [j for j in range(len(action_n)) if j != i]
+            ].flatten()
             agent.replay_buffer.add_sample(
                 observation=self._current_observation_n[i].astype(np.float32),
                 action=action_n[i].astype(np.float32),
                 reward=reward_n[i].astype(np.float32),
                 terminal=done_n[i],
                 next_observation=next_observation_n[i].astype(np.float32),
-                opponent_action=opponent_action.astype(np.float32)
+                opponent_action=opponent_action.astype(np.float32),
             )
 
         self._current_observation_n = next_observation_n
-
-        if self._n_episodes % 100 == 0:
-            render(self.env,
-                   "/tmp/episode_%08d" % self._path_length,
-                   self._path_length,)
 
         if np.all(done_n) or self._path_length >= self._max_path_length:
             self._current_observation_n = self.env.reset()
             self._max_path_return = np.maximum(self._max_path_return, self._path_return)
             self._mean_path_return = self._path_return / self._path_length
             self._last_path_return = self._path_return
-            if self._n_episodes % 100 == 0:
-                render(self.env,
-                       "/tmp/episode_%08d" % self._path_length,
-                       self._path_length,
-                       True)
             self._path_length = 0
             self._path_return = np.zeros(self.agent_num)
             self._n_episodes += 1
@@ -147,12 +151,18 @@ class MASampler(Sampler):
 
     def log_diagnostics(self):
         for i in range(self.agent_num):
-            tabular.record('max-path-return_agent_{}'.format(i), self._max_path_return[i])
-            tabular.record('mean-path-return_agent_{}'.format(i), self._mean_path_return[i])
-            tabular.record('last-path-return_agent_{}'.format(i), self._last_path_return[i])
-        tabular.record('episodes', self._n_episodes)
-        tabular.record('episode_reward', self._n_episodes)
-        tabular.record('total-samples', self._total_samples)
+            tabular.record(
+                "max-path-return_agent_{}".format(i), self._max_path_return[i]
+            )
+            tabular.record(
+                "mean-path-return_agent_{}".format(i), self._mean_path_return[i]
+            )
+            tabular.record(
+                "last-path-return_agent_{}".format(i), self._last_path_return[i]
+            )
+        tabular.record("episodes", self._n_episodes)
+        tabular.record("episode_reward", self._n_episodes)
+        tabular.record("total-samples", self._total_samples)
 
 
 class SingleSampler(Sampler):
@@ -194,28 +204,33 @@ class SingleSampler(Sampler):
         self.step += 1
         if self._current_observation is None:
             self._current_observation = self.env.reset()
+        self._current_observation = np.squeeze(self._current_observation).flatten()
 
         if explore:
             action = self.env.action_space.sample()
         else:
-            action = np.squeeze(self.agent.act(self._current_observation))
+            action = self.agent.act(np.squeeze(self._current_observation).flatten())
 
         action = np.asarray(action)
-
         next_observation, reward, done, info = self.env.step(action)
-        done = np.array(int(done))
+        next_observation = np.squeeze(next_observation).flatten()
+        reward = np.squeeze(reward).flatten()
+        action = np.squeeze(action).flatten()
+        done = np.squeeze(done)
+        done = done.astype(np.int8)
 
         self._path_length += 1
-        self._path_return += reward
+        self._path_return += np.mean(reward)
         self._total_samples += 1
-
-        self.agent.replay_buffer.add_sample(observation=self._current_observation,
-                                            action=action, reward=reward,
-                                            terminal=done,
-                                            next_observation=next_observation)
+        self.agent.replay_buffer.add_sample(
+            observation=self._current_observation,
+            action=action,
+            reward=reward,
+            terminal=done,
+            next_observation=next_observation,
+        )
 
         self._current_observation = next_observation
-
 
         if np.all(done) or self._path_length >= self._max_path_length:
             self._max_path_return = np.maximum(self._max_path_return, self._path_return)
@@ -231,7 +246,12 @@ class SingleSampler(Sampler):
             # FIXME : delete it afterwards.
             if explore is False:
                 self.episode_rewards.append(self._last_path_return.item())
-                self.episode_positions.append([self._terminal_position[0].item(), self._terminal_position[1].item()])
+                self.episode_positions.append(
+                    [
+                        self._terminal_position[0].item(),
+                        self._terminal_position[1].item(),
+                    ]
+                )
 
             self.log_diagnostics()
             logger.log(tabular)
@@ -241,11 +261,11 @@ class SingleSampler(Sampler):
             self._current_observation = next_observation
 
     def log_diagnostics(self):
-        tabular.record('max-path-return_agent', self._max_path_return[0])
-        tabular.record('mean-path-return_agent', self._mean_path_return[0])
-        tabular.record('last-path-return_agent', self._last_path_return[0])
-        tabular.record('episodes', self._n_episodes)
-        tabular.record('episode_reward', self._n_episodes)
-        tabular.record('terminal_position_x', self._terminal_position[0])
-        tabular.record('terminal_position_y', self._terminal_position[1])
-        tabular.record('total-samples', self._total_samples)
+        tabular.record("max-path-return_agent", self._max_path_return[0])
+        tabular.record("mean-path-return_agent", self._mean_path_return[0])
+        tabular.record("last-path-return_agent", self._last_path_return[0])
+        tabular.record("episodes", self._n_episodes)
+        tabular.record("episode_reward", self._n_episodes)
+        tabular.record("terminal_position_x", self._terminal_position[0])
+        tabular.record("terminal_position_y", self._terminal_position[1])
+        tabular.record("total-samples", self._total_samples)

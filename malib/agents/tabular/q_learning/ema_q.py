@@ -9,7 +9,7 @@ from malib.agents.tabular.q_learning.base_q import QAgent
 class EMAQAgent(QAgent):
     def __init__(self, id_, action_num, env, delta1=0.001, delta2=0.002, **kwargs):
         super().__init__(id_, action_num, env, **kwargs)
-        self.name = 'emaq'
+        self.name = "emaq"
         self.delta1 = delta1
         self.delta2 = delta2
         self.pi_history = [deepcopy(self.pi)]
@@ -18,11 +18,11 @@ class EMAQAgent(QAgent):
         if a == np.argmax(self.Q[s]):
             delta = self.delta1
             vi = np.zeros(self.action_num)
-            vi[a] = 1.
+            vi[a] = 1.0
         else:
             delta = self.delta2
             vi = np.zeros(self.action_num)
-            vi[a] = 0.
+            vi[a] = 0.0
 
         self.pi[s] = (1 - delta) * self.pi[s] + delta * vi
         StationaryAgent.normalize(self.pi[s])

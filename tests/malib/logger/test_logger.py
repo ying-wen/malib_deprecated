@@ -6,8 +6,7 @@ from malib.logger.logger import LoggerWarning
 
 class TestLogger(unittest.TestCase):
     def setUp(self):
-        self.mock_output = unittest.mock.Mock(
-            spec=LogOutput, types_accepted=(str, ))
+        self.mock_output = unittest.mock.Mock(spec=LogOutput, types_accepted=(str,))
         self.mock_output_type = type(self.mock_output)
         self.logger = Logger()
 
@@ -21,16 +20,16 @@ class TestLogger(unittest.TestCase):
 
     def test_add_unknown_output(self):
         with self.assertRaises(ValueError):
-            self.logger.add_output('foo')
+            self.logger.add_output("foo")
 
     def test_log(self):
         self.logger.add_output(self.mock_output)
-        self.logger.log('foo')
-        self.mock_output.record.assert_called_with('foo', prefix='')
+        self.logger.log("foo")
+        self.mock_output.record.assert_called_with("foo", prefix="")
 
     def test_log_with_no_output(self):
         with self.assertWarns(LoggerWarning):
-            self.logger.log('foo')
+            self.logger.log("foo")
 
     def test_log_with_no_logged(self):
         with self.assertWarns(LoggerWarning):
@@ -38,10 +37,10 @@ class TestLogger(unittest.TestCase):
             self.logger.log(dict())
 
     def test_log_with_prefix(self):
-        with self.logger.prefix('a/'):
+        with self.logger.prefix("a/"):
             self.logger.add_output(self.mock_output)
-            self.logger.log('foo')
-            self.mock_output.record.assert_called_with('foo', prefix='a/')
+            self.logger.log("foo")
+            self.mock_output.record.assert_called_with("foo", prefix="a/")
 
     def test_remove_output_type(self):
         self.logger.add_output(self.mock_output)

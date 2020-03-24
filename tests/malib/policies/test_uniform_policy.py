@@ -11,10 +11,11 @@ from malib.policies import UniformPolicy
 
 class UniformPolicyTest(tf.test.TestCase):
     def setUp(self):
-        self.env = gym.envs.make('MountainCarContinuous-v0')
+        self.env = gym.envs.make("MountainCarContinuous-v0")
         self.policy = UniformPolicy(
-            input_shapes=(self.env.observation_space.shape, ),
-            output_shape=self.env.action_space.shape)
+            input_shapes=(self.env.observation_space.shape,),
+            output_shape=self.env.action_space.shape,
+        )
 
     def test_actions_and_log_pis_symbolic(self):
         observation1_np = self.env.reset()
@@ -77,8 +78,9 @@ class UniformPolicyTest(tf.test.TestCase):
         deserialized = pickle.loads(pickle.dumps(self.policy))
         np.testing.assert_equal(
             self.policy.get_actions_np([observations_np]).shape,
-            deserialized.get_actions_np([observations_np]).shape)
+            deserialized.get_actions_np([observations_np]).shape,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tf.test.main()

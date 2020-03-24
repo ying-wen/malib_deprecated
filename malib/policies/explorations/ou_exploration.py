@@ -12,7 +12,6 @@ from malib.policies.explorations.base_exploration import ExplorationBase
 from malib.spaces.utils import flat_dim
 
 
-
 class OUExploration(ExplorationBase):
     """
     An OU exploration strategy to add noise to environment actions.
@@ -26,8 +25,8 @@ class OUExploration(ExplorationBase):
     Example:
         $ python garage/tf/exploration_strategies/ou_strategy.py
     """
-    def __init__(self, action_space, mu=0, sigma=0.5, theta=0.3, dt=1e-2,
-                 x0=None):
+
+    def __init__(self, action_space, mu=0, sigma=0.5, theta=0.3, dt=1e-2, x0=None):
         self.action_space = action_space
         self.action_dim = flat_dim(self.action_space)
         self.mu = mu
@@ -45,14 +44,16 @@ class OUExploration(ExplorationBase):
         """
         x = self.state
         dx = self.theta * (self.mu - x) * self.dt + self.sigma * np.sqrt(
-            self.dt) * np.random.normal(size=len(x))
+            self.dt
+        ) * np.random.normal(size=len(x))
         self.state = x + dx
         return self.state
 
     def reset(self):
         """Reset the state of the exploration."""
-        self.state = self.x0 if self.x0 is not None else self.mu * np.zeros(
-            self.action_dim)
+        self.state = (
+            self.x0 if self.x0 is not None else self.mu * np.zeros(self.action_dim)
+        )
 
     def get_action(self, t, observation, policy, extend_dim=False, **kwargs):
         """Return an action with noise.
@@ -66,14 +67,14 @@ class OUExploration(ExplorationBase):
 
         action = policy.get_action_np(observation, extend_dim=extend_dim)
         ou_state = self.simulate()
-        return np.clip(action + ou_state, self.action_space.low,
-                       self.action_space.high)
+        return np.clip(action + ou_state, self.action_space.low, self.action_space.high)
 
     def get_actions(self, t, observations, policy, **kwargs):
         actions = policy.get_actions(observations)
         ou_state = self.simulate()
-        return np.clip(actions + ou_state, self.action_space.low,
-                       self.action_space.high)
+        return np.clip(
+            actions + ou_state, self.action_space.low, self.action_space.high
+        )
 
 
 if __name__ == "__main__":
@@ -82,8 +83,7 @@ if __name__ == "__main__":
 
     env = gym.make("Pendulum-v0")
 
-    ou = OUExploration(
-        env.action_space, mu=0, theta=0.15, sigma=0.3)
+    ou = OUExploration(env.action_space, mu=0, theta=0.15, sigma=0.3)
 
     states = []
     for i in range(1000):

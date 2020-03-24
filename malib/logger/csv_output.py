@@ -23,9 +23,9 @@ class CsvOutput(FileOutput):
     @property
     def types_accepted(self):
         """Accept TabularInput objects only."""
-        return (TabularInput, )
+        return (TabularInput,)
 
-    def record(self, data, prefix=''):
+    def record(self, data, prefix=""):
         """Log tabular data to CSV."""
         if isinstance(data, TabularInput):
             to_csv = data.as_primitive_dict
@@ -36,25 +36,27 @@ class CsvOutput(FileOutput):
             if not self._writer:
                 self._fieldnames = set(to_csv.keys())
                 self._writer = csv.DictWriter(
-                    self._log_file,
-                    fieldnames=self._fieldnames,
-                    extrasaction='ignore')
+                    self._log_file, fieldnames=self._fieldnames, extrasaction="ignore"
+                )
                 self._writer.writeheader()
 
             if to_csv.keys() != self._fieldnames:
-                self._warn('Inconsistent TabularInput keys detected. '
-                           'CsvOutput keys: {}. '
-                           'TabularInput keys: {}. '
-                           'Did you change key sets after your first '
-                           'logger.log(TabularInput)?'.format(
-                               set(self._fieldnames), set(to_csv.keys())))
+                self._warn(
+                    "Inconsistent TabularInput keys detected. "
+                    "CsvOutput keys: {}. "
+                    "TabularInput keys: {}. "
+                    "Did you change key sets after your first "
+                    "logger.log(TabularInput)?".format(
+                        set(self._fieldnames), set(to_csv.keys())
+                    )
+                )
 
             self._writer.writerow(to_csv)
 
             for k in to_csv.keys():
                 data.mark(k)
         else:
-            raise ValueError('Unacceptable type.')
+            raise ValueError("Unacceptable type.")
 
     def _warn(self, msg):
         """Warns the user using warnings.warn.
@@ -63,8 +65,7 @@ class CsvOutput(FileOutput):
         is the one printed.
         """
         if not self._disable_warnings and msg not in self._warned_once:
-            warnings.warn(
-                colorize(msg, 'yellow'), CsvOutputWarning, stacklevel=3)
+            warnings.warn(colorize(msg, "yellow"), CsvOutputWarning, stacklevel=3)
         self._warned_once.add(msg)
         return msg
 

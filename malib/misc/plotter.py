@@ -19,7 +19,7 @@ class QFPolicyPlotter:
         y_size = 5
 
         fig = plt.figure(figsize=(x_size, y_size))
-        fig.suptitle('Q and Policy Figures for Agent {}'.format(agent_id))
+        fig.suptitle("Q and Policy Figures for Agent {}".format(agent_id))
         self._ax_lst = []
         for i in range(n_plots):
             ax = fig.add_subplot(100 + n_plots * 10 + i + 1)
@@ -46,7 +46,7 @@ class QFPolicyPlotter:
         xs = np.linspace(-1, 1, 50)
         ys = np.linspace(-1, 1, 50)
         xgrid, ygrid = np.meshgrid(xs, ys)
-        N = len(xs)*len(ys)
+        N = len(xs) * len(ys)
 
         # Copy default values along the first axis and replace nans with
         # the mesh grid points.
@@ -60,13 +60,13 @@ class QFPolicyPlotter:
 
             cs = ax.contour(xgrid, ygrid, qs, 20)
             self._line_objects += cs.collections
-            self._line_objects += ax.clabel(
-                cs, inline=1, fontsize=10, fmt='%.2f')
+            self._line_objects += ax.clabel(cs, inline=1, fontsize=10, fmt="%.2f")
 
     def _plot_action_samples(self):
         for ax, obs in zip(self._ax_lst, self._obs_lst):
             actions = self._policy.get_actions(
-                np.ones((self._n_samples, 1)) * obs[None, :])
+                np.ones((self._n_samples, 1)) * obs[None, :]
+            )
 
             x, y = actions[:, 0], actions[:, 1]
-            self._line_objects += ax.plot(x, y, 'b*')
+            self._line_objects += ax.plot(x, y, "b*")

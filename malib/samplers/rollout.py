@@ -14,8 +14,8 @@ def ma_rollout(env, agents, path_length, render=False, speedup=None):
 
     observations = np.zeros((path_length + 1, Do))
     actions = np.zeros((path_length, Da))
-    terminals = np.zeros((path_length, ))
-    rewards = np.zeros((path_length, ))
+    terminals = np.zeros((path_length,))
+    rewards = np.zeros((path_length,))
     agent_infos = []
     env_infos = []
 
@@ -46,22 +46,19 @@ def ma_rollout(env, agents, path_length, render=False, speedup=None):
     observations[t + 1] = observation
 
     path = {
-        'observations': observations[:t + 1],
-        'actions': actions[:t + 1],
-        'rewards': rewards[:t + 1],
-        'terminals': terminals[:t + 1],
-        'next_observations': observations[1:t + 2],
-        'agent_infos': agent_infos,
-        'env_infos': env_infos
+        "observations": observations[: t + 1],
+        "actions": actions[: t + 1],
+        "rewards": rewards[: t + 1],
+        "terminals": terminals[: t + 1],
+        "next_observations": observations[1 : t + 2],
+        "agent_infos": agent_infos,
+        "env_infos": env_infos,
     }
 
     return path
 
 
 def ma_rollouts(env, policy, path_length, n_paths):
-    paths = [
-        ma_rollout(env, policy, path_length)
-        for i in range(n_paths)
-    ]
+    paths = [ma_rollout(env, policy, path_length) for i in range(n_paths)]
 
     return paths

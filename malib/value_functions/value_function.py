@@ -2,19 +2,17 @@
 
 from collections import OrderedDict
 from malib.networks.mlp import MLP
+from malib.networks.bicnet import BiCNet
+from malib.networks.comment import CommNet
 from malib.value_functions.base_value_function import BaseValueFunction
 import tensorflow as tf
 import numpy as np
 
 
 class ValueFunction(BaseValueFunction):
-    def __init__(self,
-                 input_shapes,
-                 output_shape,
-                 preprocessor=None,
-                 name=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self, input_shapes, output_shape, preprocessor=None, name=None, *args, **kwargs
+    ):
         self._Serializable__initialize(locals())
 
         self._input_shapes = input_shapes
@@ -25,13 +23,12 @@ class ValueFunction(BaseValueFunction):
         super(ValueFunction, self).__init__(*args, **kwargs)
 
         self.condition_inputs = [
-            tf.keras.layers.Input(shape=input_shape)
-            for input_shape in input_shapes
+            tf.keras.layers.Input(shape=input_shape) for input_shape in input_shapes
         ]
 
-        conditions = tf.keras.layers.Lambda(
-            lambda x: tf.concat(x, axis=-1)
-        )(self.condition_inputs)
+        conditions = tf.keras.layers.Lambda(lambda x: tf.concat(x, axis=-1))(
+            self.condition_inputs
+        )
 
         if preprocessor is not None:
             conditions = preprocessor(conditions)
@@ -40,13 +37,11 @@ class ValueFunction(BaseValueFunction):
         # concated_shape = tuple(np.sum(self._input_shapes, axis=-1))
         # print('concated_shape', concated_shape)
         values = self._value_net(
-            input_shapes=(conditions.shape[1:], ),
-            output_size=output_shape[0],
+            input_shapes=(conditions.shape[1:],), output_size=output_shape[0],
         )(conditions)
 
         self.values_model = tf.keras.Model(self.condition_inputs, values)
-        self.diagnostics_model = tf.keras.Model(
-            self.condition_inputs, values)
+        self.diagnostics_model = tf.keras.Model(self.condition_inputs, values)
 
     def _value_net(self, input_shapes, output_size):
         raise NotImplementedError
@@ -79,19 +74,24 @@ class ValueFunction(BaseValueFunction):
         """
         values = self.diagnostics_model.predict(conditions)
 
-        return OrderedDict({
-            'values-mean': np.mean(values),
-            'values-std': np.std(values),
-            'conditions': conditions,
-        })
+        return OrderedDict(
+            {
+                "values-mean": np.mean(values),
+                "values-std": np.std(values),
+                "conditions": conditions,
+            }
+        )
 
 
 class MLPValueFunction(ValueFunction):
-    def __init__(self,
-                 hidden_layer_sizes,
-                 activation='relu',
-                 output_activation='linear',
-                 *args, **kwargs):
+    def __init__(
+        self,
+        hidden_layer_sizes,
+        activation="relu",
+        output_activation="linear",
+        *args,
+        **kwargs
+    ):
         self._hidden_layer_sizes = hidden_layer_sizes
         self._activation = activation
         self._output_activation = output_activation
@@ -105,5 +105,60 @@ class MLPValueFunction(ValueFunction):
             hidden_layer_sizes=self._hidden_layer_sizes,
             output_size=output_size,
             activation=self._activation,
-            output_activation=self._output_activation)
+            output_activation=self._output_activation,
+        )
+        return values
+
+
+class BiCNetValueFunction(ValueFunction):
+    def __init__(
+        self,
+        hidden_layer_sizes,
+        activation="relu",
+        output_activation="linear",
+        *args,
+        **kwargs
+    ):
+        self._hidden_layer_sizes = hidden_layer_sizes
+        self._activation = activation
+        self._output_activation = output_activation
+
+        self._Serializable__initialize(locals())
+        super(BiCNetValueFunction, self).__init__(*args, **kwargs)
+
+    def _value_net(self, input_shapes, output_size):
+        values = BiCNet(
+            input_shapes=input_shapes,
+            hidden_layer_sizes=self._hidden_layer_sizes,
+            output_size=output_size,
+            activation=self._activation,
+            output_activation=self._output_activation,
+        )
+        return values
+
+
+class CommNetValueFunction(ValueFunction):
+    def __init__(
+        self,
+        hidden_layer_sizes,
+        activation="relu",
+        output_activation="linear",
+        *args,
+        **kwargs
+    ):
+        self._hidden_layer_sizes = hidden_layer_sizes
+        self._activation = activation
+        self._output_activation = output_activation
+
+        self._Serializable__initialize(locals())
+        super(CommNetValueFunction, self).__init__(*args, **kwargs)
+
+    def _value_net(self, input_shapes, output_size):
+        values = CommNet(
+            input_shapes=input_shapes,
+            hidden_layer_sizes=self._hidden_layer_sizes,
+            output_size=output_size,
+            activation=self._activation,
+            output_activation=self._output_activation,
+        )
         return values

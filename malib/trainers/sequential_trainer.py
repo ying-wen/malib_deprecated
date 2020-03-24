@@ -7,8 +7,20 @@ from malib.utils import tf_utils
 
 
 class SeqTrainer:
-    def __init__(self, env, agent, teammates, sampler, batch_size, exploration_epochs, adhoc_epochs,
-                 teammate_batch_size, recent_batch_size, extra_experiences, save_path=None):
+    def __init__(
+        self,
+        env,
+        agent,
+        teammates,
+        sampler,
+        batch_size,
+        exploration_epochs,
+        adhoc_epochs,
+        teammate_batch_size,
+        recent_batch_size,
+        extra_experiences,
+        save_path=None,
+    ):
         self.env = env
         self.agent = agent
         self.teammates = teammates
@@ -40,7 +52,7 @@ class SeqTrainer:
 
         for teammate in self.teammates:
             self._setup_teammate(teammate)
-            print('teammate setup')
+            print("teammate setup")
             self.step = 0
             for epoch in range(self.adhoc_epochs):
                 self.episode_step = 0
@@ -48,21 +60,25 @@ class SeqTrainer:
                 self.step += 1
                 batches = self.sample_batches()
                 for extra_experience in self.extra_experiences:
-                    if extra_experience == 'annealing':
-                        batches = add_annealing(batches, self.step, annealing_scale=1.)
+                    if extra_experience == "annealing":
+                        batches = add_annealing(batches, self.step, annealing_scale=1.0)
                     # print('annealing', batches[0]['annealing'])
-                    elif extra_experience == 'target_actions':
-                        batches = add_target_actions(batches, self.agents, self.batch_size)
-                    elif extra_experience == 'recent_experiences':
-                        batches = add_recent_batches(batches, self.agents, self.batch_size)
+                    elif extra_experience == "target_actions":
+                        batches = add_target_actions(
+                            batches, self.agents, self.batch_size
+                        )
+                    elif extra_experience == "recent_experiences":
+                        batches = add_recent_batches(
+                            batches, self.agents, self.batch_size
+                        )
                 agents_losses = []
                 if self.step % 1 == 0:
                     for i, (agent, batch) in enumerate(zip(self.agents, batches)):
                         agent_losses = agent.train(batch)
                         agents_losses.append(agent_losses)
                     self.losses.append(agents_losses)
-                    print('agent 1', self.losses[-1][0])
-                    print('agent 2', self.losses[-1][1])
+                    print("agent 1", self.losses[-1][0])
+                    print("agent 2", self.losses[-1][1])
 
     def sample_batches(self):
         batches = []
@@ -71,11 +87,11 @@ class SeqTrainer:
             batch = agent.replay_buffer.batch_by_indices(indices)
             batches.append(batch)
         for extra_experience in self.extra_experiences:
-            if extra_experience == 'annealing':
-                batches = add_annealing(batches, self.step, annealing_scale=1.)
-            elif extra_experience == 'target_actions':
+            if extra_experience == "annealing":
+                batches = add_annealing(batches, self.step, annealing_scale=1.0)
+            elif extra_experience == "target_actions":
                 batches = add_target_actions(batches, self.agents, self.batch_size)
-            elif extra_experience == 'recent_experiences':
+            elif extra_experience == "recent_experiences":
                 batches = add_recent_batches(batches, self.agents, self.batch_size)
         return batches
 
