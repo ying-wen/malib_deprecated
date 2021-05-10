@@ -1,3 +1,7 @@
+
+------------
+This repository has been deprecated, please find new MALib repository at [https://github.com/sjtu-marl/malib](https://github.com/sjtu-marl/malib).
+------------
 [![Build](https://travis-ci.com/ying-wen/malib.svg?branch=master)](./VERSION)
 [![Supported TF Version](https://img.shields.io/badge/TensorFlow-2.0.0%2B-brightgreen.svg)](https://github.com/tensorflow/tensorflow/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
